@@ -1,0 +1,102 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Inter:wght@400;500;600;700;800&display=swap');
+@import 'leaflet/dist/leaflet.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --brand: #14532d;
+  --brand-dark: #0a2e1a;
+  --brand-mid: #1f6b45;
+  --brand-light: #eaf4ee;
+  --accent: #dd8952;
+  --accent-dark: #b96a38;
+  --accent-light: #fbe9db;
+}
+
+[data-persona="adventure"] {
+  --brand: #16352a;
+  --brand-dark: #0a1f18;
+  --brand-mid: #2c5c46;
+  --brand-light: #e8f2ec;
+  --accent: #8fc93a;
+  --accent-dark: #6a9c26;
+  --accent-light: #eef7dd;
+}
+
+[data-persona="friends"] {
+  --brand: #4c1d95;
+  --brand-dark: #2e1065;
+  --brand-mid: #7c3aed;
+  --brand-light: #f2ecfd;
+  --accent: #a855f7;
+  --accent-dark: #7e22ce;
+  --accent-light: #f4e8fe;
+}
+
+[data-persona="solo"] {
+  --brand: #0f2942;
+  --brand-dark: #071829;
+  --brand-mid: #1d3f5e;
+  --brand-light: #eaf1f8;
+  --accent: #f2a93b;
+  --accent-dark: #c9860f;
+  --accent-light: #fef1dc;
+}
+
+[data-persona="couple"] {
+  --brand: #9d174d;
+  --brand-dark: #500724;
+  --brand-mid: #be185d;
+  --brand-light: #fdf1f6;
+  --accent: #f472b6;
+  --accent-dark: #db2777;
+  --accent-light: #fce7f3;
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: #f6f5f1;
+  color: #14201a;
+}
+
+.font-display {
+  font-family: 'Fraunces', serif;
+}
+
+::selection {
+  background-color: var(--accent-light);
+  color: var(--brand-dark);
+}
+
+.focus-ring:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Used only by the Coming Soon screens as a stand-in for a background
+   video until one is dropped into public/videos/. */
+@keyframes float-a {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(4%, -6%) scale(1.08); }
+}
+@keyframes float-b {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-5%, 5%) scale(1.05); }
+}
+.animate-float-a {
+  animation: float-a 14s ease-in-out infinite;
+}
+.animate-float-b {
+  animation: float-b 18s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-float-a, .animate-float-b {
+    animation: none;
+  }
+}
