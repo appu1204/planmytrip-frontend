@@ -1,4 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Inter:wght@400;500;600;700;800&display=swap');
 @import 'leaflet/dist/leaflet.css';
 
 @tailwind base;
@@ -56,17 +55,47 @@
 }
 
 html, body, #root {
-  height: 100%;
+  min-height: 100%;
 }
 
 body {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Inter', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
   background-color: #f6f5f1;
   color: #14201a;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .font-display {
-  font-family: 'Fraunces', serif;
+  font-family: 'Fraunces', Georgia, serif;
+  font-feature-settings: "opsz" 32;
+}
+
+/* Custom sleek scrollbars */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f0eb;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 ::selection {
@@ -79,8 +108,36 @@ body {
   outline-offset: 2px;
 }
 
-/* Used only by the Coming Soon screens as a stand-in for a background
-   video until one is dropped into public/videos/. */
+/* Glassmorphism helpers */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.glass-dark {
+  background: rgba(10, 26, 20, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+@keyframes auth-rise-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.auth-story-enter > * {
+  animation: auth-rise-in 650ms cubic-bezier(.2, .7, .25, 1) both;
+}
+.auth-story-enter > *:nth-child(2) { animation-delay: 90ms; }
+.auth-story-enter > *:nth-child(3) { animation-delay: 170ms; }
+.auth-story-enter > *:nth-child(4) { animation-delay: 250ms; }
+.auth-panel-enter {
+  animation: auth-rise-in 700ms cubic-bezier(.2, .7, .25, 1) both;
+}
+
 @keyframes float-a {
   0%, 100% { transform: translate(0, 0) scale(1); }
   50% { transform: translate(4%, -6%) scale(1.08); }
@@ -95,8 +152,10 @@ body {
 .animate-float-b {
   animation: float-b 18s ease-in-out infinite;
 }
+
 @media (prefers-reduced-motion: reduce) {
-  .animate-float-a, .animate-float-b {
+  .animate-float-a, .animate-float-b, .auth-story-enter > *, .auth-panel-enter {
     animation: none;
   }
 }
+

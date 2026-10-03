@@ -4,14 +4,10 @@ import {
   AlertOctagon,
   Wind,
   CloudRain,
-  Mountain,
-  Compass,
   X,
   CheckCircle2,
   RefreshCw,
-  ExternalLink,
   Thermometer,
-  Calendar
 } from "lucide-react";
 
 export default function WeatherAdvisoryModal({
@@ -26,7 +22,6 @@ export default function WeatherAdvisoryModal({
 
   const isSafe = advisory?.status === "SAFE";
   const isCaution = advisory?.status === "CAUTION";
-  const isDanger = advisory?.status === "DANGER";
 
   const themeConfig = {
     SAFE: {
@@ -262,7 +257,7 @@ export default function WeatherAdvisoryModal({
               </button>
             )}
             <span className="text-[11px] text-slate-400">
-              Evaluated {new Date(advisory?.evaluatedAt || Date.now()).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+              Evaluated {advisory?.evaluatedAt ? new Date(advisory.evaluatedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "recently"}
             </span>
           </div>
 

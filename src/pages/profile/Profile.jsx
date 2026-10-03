@@ -156,8 +156,10 @@ export default function Profile() {
             unreadCount={unreadCount}
             onNavigate={navigate}
             onOpenSettings={setPanel}
+            onOpenNotifications={openNotifications}
             onSignOut={onSignOut}
           />
+
 
           <div className="space-y-6">
             <section className="rounded-2xl border border-slate-100 bg-white p-6 shadow-card">

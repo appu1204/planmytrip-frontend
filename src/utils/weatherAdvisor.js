@@ -1,4 +1,4 @@
-import { getDestinationCenter, normalizeDestinationName } from "./itineraryFallback";
+import { getDestinationCenter, normalizeDestinationName, setResolvedDestinationCoords } from "./itineraryFallback";
 
 // Hilly / Mountainous regions susceptible to landslides & mudslides during heavy precipitation
 const HILL_REGIONS = [
@@ -73,7 +73,8 @@ const WEATHER_CACHE = new Map();
  */
 export async function resolveDestinationCoordinates(rawDestination = "") {
   const norm = normalizeDestinationName(rawDestination);
-  const localCenter = getDestinationCenter(norm);
+  // Pass returnFallback = false so unknown destinations don't falsely map to Kerala
+  const localCenter = getDestinationCenter(norm, false);
 
   if (localCenter && localCenter.lat && localCenter.lng) {
     return {
@@ -83,28 +84,45 @@ export async function resolveDestinationCoordinates(rawDestination = "") {
     };
   }
 
-  // If destination is not in local dictionary, lookup via Open-Meteo Geocoding
-  try {
-    const res = await fetch(
-      `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(
-        rawDestination
-      )}&count=1&language=en&format=json`
-    );
-    if (res.ok) {
-      const data = await res.json();
-      if (data.results && data.results.length > 0) {
-        return {
-          lat: data.results[0].latitude,
-          lng: data.results[0].longitude,
-          label: `${data.results[0].name}, ${data.results[0].country || ""}`,
-        };
+  // Clean rawDestination for external geocoding (strip newlines, "city in...", etc.)
+  const primaryName = String(rawDestination)
+    .split(/[\r\n]+/)[0]
+    .replace(/\b(city|town|district|state)\s+in\s+.*$/gi, "")
+    .replace(/[^\w\s,]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  const searchCandidates = Array.from(
+    new Set([primaryName, norm, rawDestination.replace(/[\r\n]+/g, ", ").trim()].filter(Boolean))
+  );
+
+  for (const query of searchCandidates) {
+    if (!query || query.length < 2) continue;
+    try {
+      const res = await fetch(
+        `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(
+          query
+        )}&count=1&language=en&format=json`
+      );
+      if (res.ok) {
+        const data = await res.json();
+        if (data.results && data.results.length > 0) {
+          const match = data.results[0];
+          const resolved = {
+            lat: match.latitude,
+            lng: match.longitude,
+            label: `${match.name}${match.admin1 ? `, ${match.admin1}` : ""}, ${match.country || ""}`,
+          };
+          setResolvedDestinationCoords(rawDestination, resolved);
+          return resolved;
+        }
       }
+    } catch {
+      // Continue to next candidate
     }
-  } catch {
-    // Fallback to Kerala center
   }
 
-  return { lat: 9.9312, lng: 76.2673, label: rawDestination || "Kerala" };
+  return { lat: 28.6139, lng: 77.2090, label: rawDestination || "India" };
 }
 
 /**

@@ -7,10 +7,6 @@ import {
   Sparkles,
   FileText,
   Upload,
-  CloudRain,
-  ShieldCheck,
-  AlertTriangle,
-  AlertOctagon,
 } from "lucide-react";
 import Navbar from "../../components/layout/Navbar";
 import Button from "../../components/ui/Button";
@@ -163,8 +159,8 @@ export default function TripDetail() {
     [nights, trip?.adults, trip?.children]
   );
   const routeStops = useMemo(
-    () => itineraryToRouteStops(effectiveItinerary, trip?.destination),
-    [effectiveItinerary, trip?.destination]
+    () => itineraryToRouteStops(effectiveItinerary, trip?.destination, weatherData?.coords),
+    [effectiveItinerary, trip?.destination, weatherData?.coords]
   );
 
   const persistDays = (days) => {
@@ -446,7 +442,11 @@ export default function TripDetail() {
                     <RotateCcw className="h-3.5 w-3.5" /> Optimise order
                   </Button>
                 </div>
-                <RouteMapCanvas stops={routeStops} destination={trip.destination} />
+                <RouteMapCanvas
+                  stops={routeStops}
+                  destination={trip.destination}
+                  centerCoords={weatherData?.coords}
+                />
               </div>
             </div>
           )}

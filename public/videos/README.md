@@ -1,5 +1,11 @@
 Drop short, muted, loopable background videos here, named exactly:
 
+  auth-travel.mp4
+Use a licensed, silent landscape clip (16:9, H.264 MP4, 720p or 1080p,
+10-20 seconds, ideally under 8 MB). Auth plays it muted at 0.72x and skips
+video for reduced-motion or data-saving preferences, using the travel photo
+as its fallback.
+
   coming-soon-flights.mp4
   coming-soon-hotels.mp4
   coming-soon-activities.mp4

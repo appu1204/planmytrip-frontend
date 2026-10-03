@@ -1,39 +1,35 @@
 import { useEffect, useRef, useState, useMemo } from "react";
 import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 import {
   Navigation,
-  MapPin,
-  Compass,
-  Layers,
   ExternalLink,
   Locate,
   LocateFixed,
   RotateCcw,
-  Clock,
-  Sparkles,
-  Info,
-  Maximize2
+  Compass,
+  X,
 } from "lucide-react";
 
 // Google Maps & OpenStreetMap tile servers
 const MAP_LAYERS = {
   googleRoads: {
     name: "Google Roadmap",
-    url: "https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}",
+    url: "https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}",
     attribution: "&copy; Google Maps",
     maxZoom: 20,
     subdomains: ["mt0", "mt1", "mt2", "mt3"],
   },
   googleSatellite: {
     name: "Google Satellite",
-    url: "https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}",
+    url: "https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}",
     attribution: "&copy; Google Maps Satellite",
     maxZoom: 20,
     subdomains: ["mt0", "mt1", "mt2", "mt3"],
   },
   googleTerrain: {
     name: "Google Terrain",
-    url: "https://mt1.google.com/vt/lyrs=p&x={x}&y={y}&z={z}",
+    url: "https://{s}.google.com/vt/lyrs=p&x={x}&y={y}&z={z}",
     attribution: "&copy; Google Maps Terrain",
     maxZoom: 20,
     subdomains: ["mt0", "mt1", "mt2", "mt3"],
@@ -62,7 +58,7 @@ function calculateDistanceKm(lat1, lon1, lat2, lon2) {
   return R * c;
 }
 
-export default function RouteMapCanvas({ stops = [], destination = "" }) {
+export default function RouteMapCanvas({ stops = [], destination = "", centerCoords = null }) {
   const mapContainerRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const tileLayerRef = useRef(null);
@@ -71,13 +67,13 @@ export default function RouteMapCanvas({ stops = [], destination = "" }) {
   const userMarkerRef = useRef(null);
   const watchIdRef = useRef(null);
 
+  const [viewMode, setViewMode] = useState("interactive"); // "interactive" | "embed"
   const [activeLayer, setActiveLayer] = useState("googleRoads");
   const [selectedDay, setSelectedDay] = useState("all");
   const [activeStop, setActiveStop] = useState(null);
   const [isTrackingLocation, setIsTrackingLocation] = useState(false);
   const [userLocation, setUserLocation] = useState(null);
   const [trackingError, setTrackingError] = useState("");
-  const [viewMode, setViewMode] = useState("interactive"); // "interactive" | "googleEmbed"
 
   // Unique list of days present in stops
   const availableDays = useMemo(() => {
@@ -117,7 +113,12 @@ export default function RouteMapCanvas({ stops = [], destination = "" }) {
     if (!map) return;
     const targetStops = filteredStops.length > 0 ? filteredStops : stops;
     const latLngs = targetStops.filter((s) => s.lat && s.lng).map((s) => [s.lat, s.lng]);
-    if (!latLngs.length) return;
+    if (!latLngs.length) {
+      if (centerCoords?.lat && centerCoords?.lng) {
+        map.setView([centerCoords.lat, centerCoords.lng], 13);
+      }
+      return;
+    }
 
     const bounds = L.latLngBounds(latLngs);
     if (bounds.isValid()) {
@@ -137,14 +138,23 @@ export default function RouteMapCanvas({ stops = [], destination = "" }) {
     }
   };
 
-  // Initialize map
+  const focusStop = (stop) => {
+    if (stop?.lat && stop?.lng && mapInstanceRef.current) {
+      mapInstanceRef.current.setView([stop.lat, stop.lng], 15);
+    }
+  };
+
+  // Initialize Leaflet map
   useEffect(() => {
     if (!mapContainerRef.current) return;
 
     if (!mapInstanceRef.current) {
-      const defaultCenter = stops[0]
-        ? [stops[0].lat, stops[0].lng]
-        : [9.9312, 76.2673]; // Kerala center fallback
+      const defaultCenter =
+        stops[0]?.lat && stops[0]?.lng
+          ? [stops[0].lat, stops[0].lng]
+          : centerCoords?.lat && centerCoords?.lng
+          ? [centerCoords.lat, centerCoords.lng]
+          : [20.5937, 78.9629];
 
       const map = L.map(mapContainerRef.current, {
         center: defaultCenter,
@@ -164,7 +174,14 @@ export default function RouteMapCanvas({ stops = [], destination = "" }) {
       mapInstanceRef.current = map;
     }
 
+    // Invalidate container size after mount to prevent blank tiles
+    const timer = setTimeout(() => {
+      mapInstanceRef.current?.invalidateSize();
+      recenterOnRoute();
+    }, 200);
+
     return () => {
+      clearTimeout(timer);
       if (watchIdRef.current !== null) {
         navigator.geolocation.clearWatch(watchIdRef.current);
         watchIdRef.current = null;
@@ -176,10 +193,23 @@ export default function RouteMapCanvas({ stops = [], destination = "" }) {
     };
   }, []);
 
+  // Update map size whenever mode or tab becomes interactive
+  useEffect(() => {
+    if (viewMode === "interactive" && mapInstanceRef.current) {
+      const timer = setTimeout(() => {
+        mapInstanceRef.current?.invalidateSize();
+        recenterOnRoute();
+      }, 150);
+      return () => clearTimeout(timer);
+    }
+  }, [viewMode, selectedDay]);
+
   // Update map tiles when layer changes
   useEffect(() => {
-    if (!mapInstanceRef.current || !tileLayerRef.current) return;
-    mapInstanceRef.current.removeLayer(tileLayerRef.current);
+    if (!mapInstanceRef.current) return;
+    if (tileLayerRef.current) {
+      mapInstanceRef.current.removeLayer(tileLayerRef.current);
+    }
     tileLayerRef.current = L.tileLayer(MAP_LAYERS[activeLayer].url, {
       attribution: MAP_LAYERS[activeLayer].attribution,
       maxZoom: MAP_LAYERS[activeLayer].maxZoom,
@@ -437,7 +467,7 @@ export default function RouteMapCanvas({ stops = [], destination = "" }) {
 
   // Google Maps Embed Query
   const googleMapsEmbedUrl = useMemo(() => {
-    const query = destination ? `${destination} tourist attractions` : "Kerala tourist spots";
+    const query = destination ? `${destination} tourist attractions` : "popular tourist attractions";
     return `https://maps.google.com/maps?q=${encodeURIComponent(query)}&t=m&z=11&output=embed&iwloc=near`;
   }, [destination]);
 
@@ -448,6 +478,7 @@ export default function RouteMapCanvas({ stops = [], destination = "" }) {
         {/* Day Filter Pills */}
         <div className="flex flex-wrap items-center gap-1.5">
           <button
+            type="button"
             onClick={() => setSelectedDay("all")}
             className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
               selectedDay === "all"
@@ -460,6 +491,7 @@ export default function RouteMapCanvas({ stops = [], destination = "" }) {
           {availableDays.map((dayNum) => (
             <button
               key={dayNum}
+              type="button"
               onClick={() => setSelectedDay(String(dayNum))}
               className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
                 selectedDay === String(dayNum)
@@ -476,6 +508,7 @@ export default function RouteMapCanvas({ stops = [], destination = "" }) {
         <div className="flex flex-wrap items-center gap-2">
           {/* Recenter on Route */}
           <button
+            type="button"
             onClick={recenterOnRoute}
             className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition"
             title="Recenter view on trip route"
@@ -486,6 +519,7 @@ export default function RouteMapCanvas({ stops = [], destination = "" }) {
 
           {/* Live GPS Track Button */}
           <button
+            type="button"
             onClick={toggleLocationTracking}
             className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold transition ${
               isTrackingLocation
@@ -507,25 +541,67 @@ export default function RouteMapCanvas({ stops = [], destination = "" }) {
             )}
           </button>
 
-          {/* Layer switcher */}
-          <div className="flex items-center rounded-lg border border-slate-200 bg-slate-50 p-0.5 text-xs">
+          {/* Mode Switcher: Interactive Leaflet vs Google Embed */}
+          <div className="flex items-center rounded-lg border border-slate-200 bg-slate-100 p-0.5 text-xs">
             <button
-              onClick={() => setActiveLayer("googleRoads")}
-              className={`rounded-md px-2.5 py-1 font-medium transition ${
-                activeLayer === "googleRoads" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500"
+              type="button"
+              onClick={() => setViewMode("interactive")}
+              className={`rounded-md px-2.5 py-1 font-semibold transition ${
+                viewMode === "interactive"
+                  ? "bg-white text-slate-900 shadow-sm"
+                  : "text-slate-600 hover:text-slate-900"
               }`}
             >
-              Google Map
+              Interactive Route
             </button>
             <button
-              onClick={() => setActiveLayer("googleSatellite")}
-              className={`rounded-md px-2.5 py-1 font-medium transition ${
-                activeLayer === "googleSatellite" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500"
+              type="button"
+              onClick={() => setViewMode("embed")}
+              className={`rounded-md px-2.5 py-1 font-semibold transition ${
+                viewMode === "embed"
+                  ? "bg-white text-slate-900 shadow-sm"
+                  : "text-slate-600 hover:text-slate-900"
               }`}
             >
-              Satellite
+              Google View
             </button>
           </div>
+
+          {/* Layer switcher - shown in interactive mode */}
+          {viewMode === "interactive" && (
+            <div className="flex items-center rounded-lg border border-slate-200 bg-slate-50 p-0.5 text-xs">
+              <button
+                type="button"
+                onClick={() => setActiveLayer("googleRoads")}
+                className={`rounded-md px-2 py-1 font-medium transition ${
+                  activeLayer === "googleRoads" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500"
+                }`}
+                title="Google Roads"
+              >
+                Roads
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveLayer("googleSatellite")}
+                className={`rounded-md px-2 py-1 font-medium transition ${
+                  activeLayer === "googleSatellite" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500"
+                }`}
+                title="Google Satellite"
+              >
+                Satellite
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveLayer("osm")}
+                className={`rounded-md px-2 py-1 font-medium transition ${
+                  activeLayer === "osm" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500"
+                }`}
+                title="OpenStreetMap"
+              >
+                OSM
+              </button>
+            </div>
+          )}
 
           {/* Direct Google Maps Directions Navigation Button */}
           <a
@@ -550,7 +626,7 @@ export default function RouteMapCanvas({ stops = [], destination = "" }) {
               {Number(nearestStopInfo.distanceKm) > 50 ? (
                 <>
                   <strong>Planning Mode:</strong> Your current location is approx.{" "}
-                  <strong>{nearestStopInfo.distanceKm} km</strong> from {destination || "Kerala"}. Nearest stop:{" "}
+                  <strong>{nearestStopInfo.distanceKm} km</strong> from {destination || "your destination"}. Nearest stop:{" "}
                   <strong>{nearestStopInfo.stop.name}</strong> ({nearestStopInfo.stop.dayLabel})
                 </>
               ) : (
@@ -564,12 +640,14 @@ export default function RouteMapCanvas({ stops = [], destination = "" }) {
           </div>
           <div className="flex items-center gap-2">
             <button
+              type="button"
               onClick={recenterOnRoute}
               className="rounded-md bg-white px-2.5 py-1 text-xs font-bold text-blue-700 border border-blue-300 hover:bg-blue-100 transition"
             >
               Focus Trip Route
             </button>
             <button
+              type="button"
               onClick={focusUserLocation}
               className="rounded-md bg-white px-2.5 py-1 text-xs font-bold text-blue-700 border border-blue-300 hover:bg-blue-100 transition"
             >
@@ -594,14 +672,18 @@ export default function RouteMapCanvas({ stops = [], destination = "" }) {
       )}
 
       {/* Map Display Viewport */}
-      <div className="relative w-full overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-card">
-        {viewMode === "interactive" ? (
-          <div
-            ref={mapContainerRef}
-            className="h-[520px] w-full z-0"
-            style={{ minHeight: "480px" }}
-          />
-        ) : (
+      <div className="relative w-full overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 shadow-card">
+        {/* Interactive Leaflet Map (Kept in DOM so state/instances aren't wiped on toggle) */}
+        <div
+          ref={mapContainerRef}
+          className={`h-[520px] w-full z-0 transition-opacity duration-200 ${
+            viewMode === "interactive" ? "block opacity-100" : "hidden opacity-0 pointer-events-none"
+          }`}
+          style={{ minHeight: "480px" }}
+        />
+
+        {/* Google Maps Embed View */}
+        {viewMode === "embed" && (
           <iframe
             title="Google Maps Route"
             src={googleMapsEmbedUrl}
@@ -609,6 +691,56 @@ export default function RouteMapCanvas({ stops = [], destination = "" }) {
             loading="lazy"
             allowFullScreen
           />
+        )}
+
+        {/* Active Stop Card Popup Floating on Map */}
+        {activeStop && viewMode === "interactive" && (
+          <div className="absolute top-4 right-4 z-[500] max-w-sm rounded-xl bg-white/95 p-3.5 shadow-xl border border-slate-200 backdrop-blur-md transition-all animate-fadeIn">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <span className="inline-block rounded-md bg-blue-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-blue-700 border border-blue-200">
+                  {activeStop.dayLabel || "Stop"} · Stop {activeStop.stopIndex}
+                </span>
+                <h4 className="mt-1 font-bold text-slate-900 text-sm">{activeStop.name}</h4>
+                {activeStop.time && (
+                  <p className="mt-0.5 text-xs text-slate-500 font-medium">⏰ {activeStop.time}</p>
+                )}
+                {activeStop.note && (
+                  <p className="mt-1 text-xs text-slate-600 line-clamp-2 leading-relaxed">
+                    {activeStop.note}
+                  </p>
+                )}
+                <div className="mt-2.5 flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => focusStop(activeStop)}
+                    className="rounded-md bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-200 transition"
+                  >
+                    Zoom In
+                  </button>
+                  <a
+                    href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(
+                      `${activeStop.name}, ${destination || activeStop.destination || ""}`
+                    )}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 rounded-md bg-blue-600 px-2.5 py-1 text-xs font-semibold text-white hover:bg-blue-700 transition"
+                  >
+                    <span>Directions</span>
+                    <ExternalLink className="h-3 w-3" />
+                  </a>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setActiveStop(null)}
+                className="rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition"
+                title="Close"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
         )}
 
         {/* Map Legend Overlay */}

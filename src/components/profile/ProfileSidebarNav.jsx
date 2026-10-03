@@ -1,13 +1,19 @@
 import { Home, Heart, UserRoundCog, Bell, Settings, LogOut } from "lucide-react";
 
-export default function ProfileSidebarNav({ unreadCount, onNavigate, onOpenSettings, onSignOut }) {
+export default function ProfileSidebarNav({ unreadCount, onNavigate, onOpenSettings, onOpenNotifications, onSignOut }) {
   const items = [
     { icon: Home, label: "My trips", onClick: () => onNavigate("/trips") },
     { icon: Heart, label: "Wishlist", onClick: () => onNavigate("/wishlist") },
     { icon: UserRoundCog, label: "Change travel persona", onClick: () => onNavigate("/onboarding/persona") },
-    { icon: Bell, label: "Notifications", badge: unreadCount, onClick: () => onOpenSettings("notifications") },
+    {
+      icon: Bell,
+      label: "Notifications",
+      badge: unreadCount,
+      onClick: () => (onOpenNotifications ? onOpenNotifications() : onOpenSettings("notifications")),
+    },
     { icon: Settings, label: "Settings", onClick: () => onOpenSettings("settings") },
   ];
+
 
   return (
     <div className="divide-y divide-slate-100 rounded-2xl border border-slate-100 bg-white shadow-card">

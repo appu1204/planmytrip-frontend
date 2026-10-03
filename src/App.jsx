@@ -1,9 +1,7 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/layout/ProtectedRoute";
 
-import Register from "./pages/auth/Register";
-import Login from "./pages/auth/Login";
 import VerifyOtp from "./pages/auth/VerifyOtp";
 import ForgotPassword from "./pages/auth/ForgotPassword";
 import ResetPassword from "./pages/auth/ResetPassword";
@@ -18,27 +16,39 @@ import Wishlist from "./pages/wishlist/Wishlist";
 import Profile from "./pages/profile/Profile";
 import ComingSoon from "./pages/misc/ComingSoon";
 
+function HomeAuthRedirect({ mode }) {
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  searchParams.set("auth", mode);
+
+  return (
+    <Navigate
+      to={{ pathname: "/home", search: `?${searchParams.toString()}` }}
+      state={location.state}
+      replace
+    />
+  );
+}
+
 export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
         <Routes>
-          <Route path="/" element={<Navigate to="/login" replace />} />
+          <Route path="/" element={<Navigate to="/home" replace />} />
 
-          {/* Phase 1 — auth */}
-          <Route path="/register" element={<Register />} />
-          <Route path="/login" element={<Login />} />
+          {/* Legacy auth URLs open the account dialog on Home. */}
+          <Route path="/register" element={<HomeAuthRedirect mode="register" />} />
+          <Route path="/login" element={<HomeAuthRedirect mode="login" />} />
           <Route path="/verify-otp" element={<VerifyOtp />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/verify-email" element={<VerifyEmail />} />
+          <Route path="/home" element={<Home />} />
 
           {/* Onboarding */}
           <Route element={<ProtectedRoute />}>
             <Route path="/onboarding/persona" element={<PersonaSelect />} />
-
-            {/* Phase 2 — persona-based home */}
-            <Route path="/home" element={<Home />} />
 
             {/* Phase 3 — trips */}
             <Route path="/trips" element={<MyTrips />} />
@@ -57,7 +67,7 @@ export default function App() {
             <Route path="/transport" element={<ComingSoon type="transport" />} />
           </Route>
 
-          <Route path="*" element={<Navigate to="/login" replace />} />
+          <Route path="*" element={<Navigate to="/home" replace />} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>

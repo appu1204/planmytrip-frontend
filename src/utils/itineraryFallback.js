@@ -55,6 +55,15 @@ const DESTINATION_ALIASES = {
   port_blair: "andaman",
   havelock: "andaman",
   swaraj_dweep: "andaman",
+
+  // Uttar Pradesh & Braj Region
+  mathura: "mathura",
+  "mathura city": "mathura",
+  "mathura uttar pradesh": "mathura",
+  "mathura up": "mathura",
+  vrindavan: "vrindavan",
+  brindavan: "vrindavan",
+  ayodhya: "ayodhya",
 };
 
 // Comprehensive GPS centers for popular destinations in India and worldwide
@@ -120,6 +129,9 @@ const DESTINATION_CENTERS = {
   jaisalmer: { lat: 26.9157, lng: 70.9083, label: "Jaisalmer, Rajasthan" },
   pushkar: { lat: 26.4897, lng: 74.5511, label: "Pushkar, Rajasthan" },
   agra: { lat: 27.1767, lng: 78.0081, label: "Agra, Uttar Pradesh" },
+  mathura: { lat: 27.4924, lng: 77.6737, label: "Mathura, Uttar Pradesh" },
+  vrindavan: { lat: 27.5807, lng: 77.7006, label: "Vrindavan, Uttar Pradesh" },
+  ayodhya: { lat: 26.7922, lng: 82.1998, label: "Ayodhya, Uttar Pradesh" },
   varanasi: { lat: 25.3176, lng: 82.9739, label: "Varanasi, Uttar Pradesh" },
   lucknow: { lat: 26.8467, lng: 80.9462, label: "Lucknow, Uttar Pradesh" },
   amritsar: { lat: 31.6340, lng: 74.8723, label: "Amritsar, Punjab" },
@@ -238,16 +250,34 @@ const SPECIFIC_PLACES = [
   { keywords: ["dal lake", "shikara ride srinagar"], lat: 34.0837, lng: 74.8373, name: "Dal Lake Srinagar" },
   { keywords: ["gulmarg gondola"], lat: 34.0484, lng: 74.3805, name: "Gulmarg Gondola" },
   { keywords: ["ram jhula", "lakshman jhula", "triveni ghat", "ganga aarti"], lat: 30.1250, lng: 78.3180, name: "Ram Jhula & Ganga Aarti" },
+
+  // Mathura, Vrindavan & Braj Heritage
+  { keywords: ["krishna janmabhoomi", "janmabhoomi", "keshava deo", "shri krishna"], lat: 27.5048, lng: 77.6698, name: "Shri Krishna Janmabhoomi Temple" },
+  { keywords: ["dwarkadhish", "dwarkadheesh"], lat: 27.5050, lng: 77.6835, name: "Dwarkadhish Temple Mathura" },
+  { keywords: ["vishram ghat", "yamuna aarti", "yamuna ghat", "potara kund"], lat: 27.5020, lng: 77.6830, name: "Vishram Ghat & Yamuna Aarti" },
+  { keywords: ["banke bihari", "bihari ji"], lat: 27.5800, lng: 77.7010, name: "Banke Bihari Temple Vrindavan" },
+  { keywords: ["prem mandir"], lat: 27.5714, lng: 77.6740, name: "Prem Mandir Vrindavan" },
+  { keywords: ["iskcon vrindavan", "krishna balaram"], lat: 27.5727, lng: 77.6832, name: "ISKCON Krishna Balaram Temple" },
+  { keywords: ["govardhan", "giriraj", "govardhan hill", "parikrama"], lat: 27.4947, lng: 77.4646, name: "Govardhan Hill & Daan Ghati" },
+  { keywords: ["radha kund", "shyam kund"], lat: 27.5255, lng: 77.4950, name: "Radha Kund & Shyam Kund" },
+  { keywords: ["barsana", "radharani temple"], lat: 27.6492, lng: 77.3745, name: "Radharani Temple Barsana" },
+  { keywords: ["gokul", "raman reti"], lat: 27.4398, lng: 77.7197, name: "Gokul & Raman Reti" },
 ];
 
-// Helper: Normalize destination string (handling typos, extra symbols, and aliases)
+// Helper: Normalize destination string (handling typos, extra symbols, aliases, and multi-line inputs)
 export function normalizeDestinationName(rawDestination = "") {
   if (!rawDestination) return "kerala";
-  const cleaned = rawDestination
+
+  // Handle multi-line strings (e.g. "Mathura\nCity in Uttar Pradesh") by taking the primary line
+  const firstLine = String(rawDestination).split(/[\r\n]+/)[0].trim() || rawDestination;
+  let cleaned = firstLine
     .toLowerCase()
     .trim()
     .replace(/[^\w\s]/g, "")
     .replace(/\s+/g, " ");
+
+  // Remove administrative descriptive phrasing like "city in uttar pradesh" -> "mathura"
+  cleaned = cleaned.replace(/\b(city|town|district|state)\s+in\s+.*$/gi, "").trim();
 
   // Direct alias check
   if (DESTINATION_ALIASES[cleaned]) {
@@ -278,23 +308,43 @@ export function normalizeDestinationName(rawDestination = "") {
   return cleaned;
 }
 
-// Find center GPS coordinate for any destination with rich fallback
-export function getDestinationCenter(destination = "") {
+// In-memory cache for dynamically geocoded destinations from user input
+const DYNAMIC_GEO_CACHE = new Map();
+
+export function setResolvedDestinationCoords(destination, coords) {
+  if (!destination || !coords || !coords.lat || !coords.lng) return;
+  const norm = normalizeDestinationName(destination);
+  DYNAMIC_GEO_CACHE.set(norm, coords);
+}
+
+export function getResolvedDestinationCoords(destination) {
+  if (!destination) return null;
+  const norm = normalizeDestinationName(destination);
+  return DYNAMIC_GEO_CACHE.get(norm) || null;
+}
+
+// Find center GPS coordinate for any destination with dynamic geocoding support
+export function getDestinationCenter(destination = "", returnFallback = true) {
   const norm = normalizeDestinationName(destination);
 
-  // Exact or alias match
+  // 1. Check dynamically resolved coordinates (works for ANY user-inputted location)
+  if (DYNAMIC_GEO_CACHE.has(norm)) {
+    return DYNAMIC_GEO_CACHE.get(norm);
+  }
+
+  // 2. Exact or alias match in predefined catalogue
   if (DESTINATION_CENTERS[norm]) {
     return DESTINATION_CENTERS[norm];
   }
 
-  // Substring match
+  // 3. Substring match
   for (const [key, center] of Object.entries(DESTINATION_CENTERS)) {
     if (norm.includes(key) || key.includes(norm)) {
       return center;
     }
   }
 
-  // Check if destination words match any center
+  // 4. Check if destination words match any center
   const words = norm.split(" ");
   for (const word of words) {
     if (word.length > 2) {
@@ -306,13 +356,12 @@ export function getDestinationCenter(destination = "") {
     }
   }
 
-  // If user entered Kerala variations that slipped through, default to Kerala
-  if (norm.includes("ker") || norm.includes("koc") || norm.includes("all") || norm.includes("mun")) {
-    return DESTINATION_CENTERS["kerala"];
+  if (!returnFallback) {
+    return null;
   }
 
-  // Fallback to Kochi / Kerala as friendly tropical starting point if unknown
-  return DESTINATION_CENTERS["kerala"];
+  // Neutral geographical center for unknown destinations when fallback is needed
+  return { lat: 20.5937, lng: 78.9629, label: destination || "Destination" };
 }
 
 const ARRIVAL_ACTIVITIES = [
@@ -372,11 +421,14 @@ export function buildFallbackItinerary(trip = {}) {
 }
 
 // Convert itinerary activities into rich route stops with real GPS coordinates for Google Maps
-export function itineraryToRouteStops(itinerary, rawDestination = "") {
+export function itineraryToRouteStops(itinerary, rawDestination = "", overrideCenter = null) {
   if (!itinerary?.days?.length) return [];
 
   const normDest = normalizeDestinationName(rawDestination || itinerary.destination || "");
-  const center = getDestinationCenter(normDest);
+  const center =
+    overrideCenter && overrideCenter.lat && overrideCenter.lng
+      ? overrideCenter
+      : getDestinationCenter(normDest);
 
   const stops = [];
   let stopCounter = 1;

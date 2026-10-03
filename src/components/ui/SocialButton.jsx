@@ -22,12 +22,15 @@ const ICONS = {
   ),
 };
 
-export default function SocialButton({ provider, label, onClick }) {
+export default function SocialButton({ provider, label, onClick, className = "", disabled = false, descriptionId }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className="focus-ring flex flex-1 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+      disabled={disabled}
+      aria-describedby={disabled ? descriptionId : undefined}
+      title={disabled ? `${label} sign-in is not configured yet` : undefined}
+      className={`focus-ring flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-2 py-3 text-xs font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:bg-white/60 disabled:text-slate-500 disabled:hover:bg-white/60 sm:gap-2 sm:px-3 sm:text-sm ${className}`}
     >
       {ICONS[provider]}
       {label}

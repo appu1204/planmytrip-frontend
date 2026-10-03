@@ -4,10 +4,10 @@ import AuthLayout from "../../components/layout/AuthLayout";
 import Input from "../../components/ui/Input";
 import PasswordInput from "../../components/ui/PasswordInput";
 import Button from "../../components/ui/Button";
-import SocialButton from "../../components/ui/SocialButton";
 import { registerUser } from "../../api/auth";
+import { KeyRound, Mail, Phone, UserRound } from "lucide-react";
 
-export default function Register() {
+export default function Register({ embedded = false, onModeChange }) {
   const navigate = useNavigate();
   const [form, setForm] = useState({
     fullName: "",
@@ -15,7 +15,7 @@ export default function Register() {
     phone: "",
     password: "",
     confirmPassword: "",
-    acceptTerms: true,
+    acceptTerms: false,
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
@@ -37,9 +37,9 @@ export default function Register() {
     else if (!/^\+?[0-9\s().-]{7,15}$/.test(form.phone.trim())) next.phone = "Enter a valid phone number";
     if (!form.password) next.password = "Password is required";
     else if (form.password.length < 8) next.password = "Use at least 8 characters";
-    if (!form.confirmPassword) next.confirmPassword = "Confirm password is required";
-    else if (form.confirmPassword !== form.password) next.confirmPassword = "Passwords don't match";
-    if (!form.acceptTerms) next.acceptTerms = "You must accept the terms to continue";
+    if (!form.confirmPassword) next.confirmPassword = "Re-type your password";
+    else if (form.confirmPassword !== form.password) next.confirmPassword = "Passwords don't match. Re-type your password.";
+    if (!form.acceptTerms) next.acceptTerms = "Please accept the Terms of Service and Privacy Policy to continue.";
     setErrors(next);
     return Object.keys(next).length === 0;
   };
@@ -68,24 +68,12 @@ export default function Register() {
     }
   };
 
-  return (
-    <AuthLayout
-      eyebrow="Onboarding"
-      headline="Plan trips your"
-      headlineAccent="whole crew will love."
-      description="Curated destinations, real safety notes, and day-by-day plans everyone can agree on — built together, in minutes."
-      stats={[
-        { value: "48,900+", label: "trips planned" },
-        { value: "4.9 / 5", label: "traveller trust score" },
-        { value: "120+", label: "curated destinations" },
-      ]}
-      testimonial={{
-        initials: "PD",
-        quote: "We booked our Kerala trip in one evening — everyone helped pick the stops.",
-      }}
-    >
-      <h2 className="font-display text-3xl font-semibold text-slate-900">Create your account</h2>
-      <p className="mt-2 text-sm text-slate-500">Start planning smarter trips you'll love.</p>
+  const formContent = (
+    <>
+      <h2 className={`font-bold leading-tight text-[#10382b] ${embedded ? "font-sans text-[23px]" : "font-display text-3xl"}`}>
+        Create your <span className={embedded ? "text-[#2875e8]" : ""}>account</span>
+      </h2>
+      <p className={`text-slate-500 ${embedded ? "mt-1 text-xs sm:text-sm" : "mt-2 text-sm"}`}>Bring every travel detail together in one place.</p>
 
       {successMessage ? (
         <div className="my-6 rounded-2xl border border-emerald-200 bg-emerald-50/80 p-6 text-center shadow-sm">
@@ -102,35 +90,27 @@ export default function Register() {
             Click the link in the email to activate your account.
           </p>
           <div className="mt-6">
-            <Button onClick={() => navigate("/login")}>
+            <Button onClick={() => embedded ? onModeChange("login") : navigate("/login")}>
               Go to Sign In →
             </Button>
           </div>
         </div>
       ) : (
         <>
-          <div className="mt-7 flex gap-3">
-            <SocialButton provider="google" label="Google" />
-            <SocialButton provider="apple" label="Apple" />
-            <SocialButton provider="facebook" label="Facebook" />
-          </div>
-
-          <div className="my-6 flex items-center gap-3 text-xs text-slate-400">
-            <div className="h-px flex-1 bg-slate-200" />
-            or sign up with email
-            <div className="h-px flex-1 bg-slate-200" />
-          </div>
-
           {apiError && (
-            <div className="mb-4 rounded-lg bg-red-50 px-4 py-2.5 text-sm text-red-600">
+            <div role="alert" className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
               {apiError}
             </div>
           )}
 
-          <form className="space-y-4" onSubmit={onSubmit} noValidate>
+          <form className={embedded ? "mt-3 space-y-3" : "space-y-3"} onSubmit={onSubmit} noValidate>
         <Input
           label="Full name"
-          placeholder="Your full name"
+          leadingIcon={embedded ? UserRound : undefined}
+          floatingLabel={embedded}
+          className={embedded ? "!py-2.5 !text-sm" : "!py-2.5"}
+          placeholder="Your name"
+          required
           value={form.fullName}
           onChange={onChange("fullName")}
           error={errors.fullName}
@@ -138,8 +118,12 @@ export default function Register() {
         />
         <Input
           label="Email address"
+          leadingIcon={embedded ? Mail : undefined}
+          floatingLabel={embedded}
+          className={embedded ? "!py-2.5 !text-sm" : "!py-2.5"}
           type="email"
           placeholder="you@example.com"
+          required
           value={form.email}
           onChange={onChange("email")}
           error={errors.email}
@@ -147,17 +131,25 @@ export default function Register() {
         />
         <Input
           label="Phone number"
+          leadingIcon={embedded ? Phone : undefined}
+          floatingLabel={embedded}
+          className={embedded ? "!py-2.5 !text-sm" : "!py-2.5"}
           type="tel"
-          placeholder="+1 555 123 4567"
+          placeholder="+1 (555) 123-4567"
+          required
           value={form.phone}
           onChange={onChange("phone")}
           error={errors.phone}
           autoComplete="tel"
         />
-        <div className="grid grid-cols-2 gap-4">
+        <div className={`grid grid-cols-1 ${embedded ? "gap-2" : "gap-3 sm:grid-cols-2"}`}>
           <PasswordInput
             label="Password"
-            placeholder="Create a password"
+            leadingIcon={embedded ? KeyRound : undefined}
+            floatingLabel={embedded}
+            className={embedded ? "!py-2.5 !text-sm" : "!py-2.5"}
+            placeholder="At least 8 characters"
+            required
             value={form.password}
             onChange={onChange("password")}
             error={errors.password}
@@ -165,8 +157,12 @@ export default function Register() {
             autoComplete="new-password"
           />
           <PasswordInput
-            label="Confirm password"
-            placeholder="Repeat password"
+            label="Re-type password"
+            leadingIcon={embedded ? KeyRound : undefined}
+            floatingLabel={embedded}
+            className={embedded ? "!py-2.5 !text-sm" : "!py-2.5"}
+            placeholder="Re-type password"
+            required
             value={form.confirmPassword}
             onChange={onChange("confirmPassword")}
             error={errors.confirmPassword}
@@ -174,42 +170,67 @@ export default function Register() {
           />
         </div>
 
-        <label className="flex items-start gap-2.5 text-sm text-slate-600">
+        <label className={`flex items-start gap-2.5 leading-5 text-slate-600 ${embedded ? "text-xs" : "text-xs sm:text-sm"}`}>
           <input
             type="checkbox"
-            className="focus-ring mt-0.5 h-4 w-4 rounded border-slate-300"
+            className="focus-ring mt-0.5 h-4 w-4 shrink-0 rounded border-slate-300 accent-[var(--brand)]"
             checked={form.acceptTerms}
             onChange={onChange("acceptTerms")}
+            required
+            aria-invalid={errors.acceptTerms ? "true" : undefined}
+            aria-describedby={errors.acceptTerms ? "terms-error" : undefined}
           />
           <span>
             I agree to PlanMyTrip's{" "}
-            <a className="font-medium" style={{ color: "var(--brand)" }} href="#">
+            <span className="font-medium text-slate-700">
               Terms of Service
-            </a>{" "}
+            </span>{" "}
             and{" "}
-            <a className="font-medium" style={{ color: "var(--brand)" }} href="#">
+            <span className="font-medium text-slate-700">
               Privacy Policy
-            </a>
+            </span>
             .
           </span>
         </label>
         {errors.acceptTerms && (
-          <p className="-mt-2 text-xs font-medium text-red-500">{errors.acceptTerms}</p>
+          <p id="terms-error" role="alert" className="-mt-2 text-xs font-medium text-red-600">{errors.acceptTerms}</p>
         )}
 
-        <Button type="submit" loading={loading}>
-          Create account →
+        <Button type="submit" loading={loading} className={embedded ? "rounded-lg !py-2 text-sm shadow-lg shadow-emerald-900/10" : "rounded-lg py-3.5 text-sm shadow-lg shadow-emerald-900/10"}>
+          Create account
         </Button>
       </form>
 
-      <p className="mt-6 text-center text-sm text-slate-500">
+      <p className={`text-center text-slate-500 ${embedded ? "mt-3 text-xs leading-5" : "mt-4 text-sm"}`}>
         Already planning with us?{" "}
-        <Link to="/login" className="font-semibold" style={{ color: "var(--brand)" }}>
-          Sign in
-        </Link>
+        {embedded ? (
+          <button type="button" onClick={() => onModeChange("login")} className="font-semibold transition-colors hover:underline" style={{ color: "var(--brand)" }}>
+            Sign in
+          </button>
+        ) : (
+          <Link to="/login" className="font-semibold transition-colors hover:underline" style={{ color: "var(--brand)" }}>
+            Sign in
+          </Link>
+        )}
       </p>
         </>
       )}
+    </>
+  );
+
+  if (embedded) return formContent;
+
+  return (
+    <AuthLayout
+      mode="register"
+      eyebrow="PLAN TOGETHER"
+      headline="Plan trips your"
+      headlineSecondLine="whole crew"
+      headlineAccent="will love."
+      description="Bring the people, places, and little details that make a trip yours into one clear plan."
+      highlights={["Build day-by-day itineraries", "Keep trip details organized", "Discover new destinations"]}
+    >
+      {formContent}
     </AuthLayout>
   );
 }

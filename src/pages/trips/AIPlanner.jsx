@@ -38,7 +38,7 @@ export default function AIPlanner() {
     adults: 2,
     children: 0,
   });
-  const [preferences, setPreferences] = useState(["Backwaters", "Beaches"]);
+  const [preferences, setPreferences] = useState([]);
   const [plan, setPlan] = useState(null);
   const [generating, setGenerating] = useState(false);
   const [saving, setSaving] = useState(false);

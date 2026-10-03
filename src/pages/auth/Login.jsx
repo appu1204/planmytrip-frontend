@@ -4,11 +4,10 @@ import AuthLayout from "../../components/layout/AuthLayout";
 import Input from "../../components/ui/Input";
 import PasswordInput from "../../components/ui/PasswordInput";
 import Button from "../../components/ui/Button";
-import SocialButton from "../../components/ui/SocialButton";
 import { loginUser } from "../../api/auth";
 import { useAuth } from "../../context/AuthContext";
 
-export default function Login() {
+export default function Login({ embedded = false, onModeChange, onClose }) {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const location = useLocation();
@@ -17,7 +16,6 @@ export default function Login() {
   const [form, setForm] = useState({
     email: location.state?.email || "",
     password: "",
-    keepSignedIn: true,
   });
   const [errors, setErrors] = useState({});
   const [apiError, setApiError] = useState("");
@@ -50,6 +48,7 @@ export default function Login() {
       // from /auth/verify-otp instead. Handle both without guessing wrong.
       if (data?.token) {
         login({ token: data.token, user: data.user });
+        onClose?.();
         navigate(data.user?.persona ? "/home" : "/onboarding/persona");
       } else {
         navigate("/verify-otp", { state: { email: form.email, flow: "login" } });
@@ -61,53 +60,34 @@ export default function Login() {
     }
   };
 
-  return (
-    <AuthLayout
-      eyebrow="Welcome back"
-      headline="Pick up where"
-      headlineAccent="you left off."
-      description="Your saved trips, wishlists and itineraries are exactly where you left them."
-      testimonial={{
-        initials: "PD",
-        quote: "Everything I'd planned was right there when I logged back in.",
-      }}
-    >
-      <h2 className="font-display text-3xl font-semibold text-slate-900">Welcome back</h2>
-      <p className="mt-2 text-sm text-slate-500">Sign in to pick up right where you left off.</p>
-
-      <div className="mt-7 flex gap-3">
-        <SocialButton provider="google" label="Google" />
-        <SocialButton provider="apple" label="Apple" />
-        <SocialButton provider="facebook" label="Facebook" />
-      </div>
-
-      <div className="my-6 flex items-center gap-3 text-xs text-slate-400">
-        <div className="h-px flex-1 bg-slate-200" />
-        or sign in with email
-        <div className="h-px flex-1 bg-slate-200" />
-      </div>
+  const formContent = (
+    <>
+      <h2 className={`font-semibold leading-tight text-[#10382b] ${embedded ? "font-sans text-[22px]" : "font-display text-3xl"}`}>Welcome back</h2>
+      {!embedded && <p className="mt-2 text-sm text-slate-500">Access your trips and continue planning.</p>}
 
       {isVerified && (
-        <div className="mb-4 rounded-lg bg-emerald-50 px-4 py-2.5 text-sm font-medium text-emerald-700 border border-emerald-200">
+        <div role="status" className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">
           Email verified successfully! You can now sign in.
         </div>
       )}
 
       {location.state?.justReset && (
-        <div className="mb-4 rounded-lg bg-emerald-50 px-4 py-2.5 text-sm font-medium text-emerald-700 border border-emerald-200">
+        <div role="status" className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">
           Password reset successfully! Please sign in with your new password.
         </div>
       )}
 
       {apiError && (
-        <div className="mb-4 rounded-lg bg-red-50 px-4 py-2.5 text-sm text-red-600">
+        <div role="alert" className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           {apiError}
         </div>
       )}
 
-      <form className="space-y-4" onSubmit={onSubmit} noValidate>
+      <form className={embedded ? "space-y-2" : "space-y-4"} onSubmit={onSubmit} noValidate>
         <Input
           label="Email address"
+          className={embedded ? "!py-2 !text-sm" : ""}
+          labelClassName={embedded ? "!mb-1 !text-xs !font-semibold !text-slate-700" : ""}
           type="email"
           placeholder="you@example.com"
           value={form.email}
@@ -117,6 +97,8 @@ export default function Login() {
         />
         <PasswordInput
           label="Password"
+          className={embedded ? "!py-2 !text-sm" : ""}
+          labelClassName={embedded ? "!mb-1 !text-xs !font-semibold !text-slate-700" : ""}
           placeholder="Your password"
           value={form.password}
           onChange={onChange("password")}
@@ -124,32 +106,45 @@ export default function Login() {
           autoComplete="current-password"
         />
 
-        <div className="flex items-center justify-between text-sm">
-          <label className="flex items-center gap-2 text-slate-600">
-            <input
-              type="checkbox"
-              className="focus-ring h-4 w-4 rounded border-slate-300"
-              checked={form.keepSignedIn}
-              onChange={onChange("keepSignedIn")}
-            />
-            Keep me signed in
-          </label>
+        <div className={`flex justify-end ${embedded ? "text-xs font-medium" : "text-sm"}`}>
           <Link to="/forgot-password" className="font-semibold" style={{ color: "var(--brand)" }}>
             Forgot password?
           </Link>
         </div>
 
-        <Button type="submit" loading={loading}>
-          Sign in →
+        <Button type="submit" loading={loading} className={embedded ? "rounded-lg !py-2 text-sm" : "rounded-lg py-3.5 text-sm"}>
+          Sign in
         </Button>
       </form>
 
-      <p className="mt-6 text-center text-sm text-slate-500">
+      <p className={`text-center text-slate-500 ${embedded ? "mt-2 text-xs leading-5" : "mt-6 text-sm"}`}>
         New to PlanMyTrip?{" "}
-        <Link to="/register" className="font-semibold" style={{ color: "var(--brand)" }}>
-          Create an account
-        </Link>
+        {embedded ? (
+          <button type="button" onClick={() => onModeChange("register")} className="font-semibold transition-colors hover:underline" style={{ color: "var(--brand)" }}>
+            Create an account
+          </button>
+        ) : (
+          <Link to="/register" className="font-semibold transition-colors hover:underline" style={{ color: "var(--brand)" }}>
+            Create an account
+          </Link>
+        )}
       </p>
+    </>
+  );
+
+  if (embedded) return formContent;
+
+  return (
+    <AuthLayout
+      mode="login"
+      eyebrow="WELCOME BACK"
+      headline="Pick up where"
+      headlineSecondLine="you"
+      headlineAccent="left off."
+      description="Your saved trips, wishlists, and itineraries are ready right where you left them."
+      highlights={["Your trips and plans in one place", "Pick up planning whenever you're ready"]}
+    >
+      {formContent}
     </AuthLayout>
   );
 }

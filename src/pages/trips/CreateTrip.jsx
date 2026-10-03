@@ -6,7 +6,6 @@ import {
   ShieldCheck,
   AlertTriangle,
   AlertOctagon,
-  CloudRain,
 } from "lucide-react";
 import Navbar from "../../components/layout/Navbar";
 import Input from "../../components/ui/Input";
@@ -37,7 +36,7 @@ export default function CreateTrip() {
 
   const [form, setForm] = useState({
     tripName: "",
-    destination: state?.destination || "",
+    destination: (state?.destination || "").replace(/[\r\n]+/g, ", ").trim(),
     tripType: user?.persona || "family",
     checkIn: state?.checkIn || "",
     checkOut: state?.checkOut || "",
@@ -55,7 +54,11 @@ export default function CreateTrip() {
   const [showAdvisoryModal, setShowAdvisoryModal] = useState(false);
 
   const set = (field) => (value) => {
-    setForm((f) => ({ ...f, [field]: value }));
+    let sanitized = value;
+    if (field === "destination" && typeof value === "string") {
+      sanitized = value.replace(/[\r\n]+/g, ", ");
+    }
+    setForm((f) => ({ ...f, [field]: sanitized }));
     setErrors((er) => ({ ...er, [field]: undefined }));
   };
 
