@@ -5,6 +5,7 @@ import Navbar from "../../components/layout/Navbar";
 import { useAuth } from "../../context/AuthContext";
 import { getPersona } from "../../theme/personas";
 import { COMING_SOON_CONTENT } from "../../theme/comingSoonContent";
+import { subscribeNewsletter } from "../../api/users";
 
 const BACKDROP_IMAGES = {
   flights: "/images/airliner-clouds.png",
@@ -21,12 +22,26 @@ export default function ComingSoon({ type }) {
 
   const [email, setEmail] = useState("");
   const [subscribed, setSubscribed] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
-  const onNotifyMe = (e) => {
+  const onNotifyMe = async (e) => {
     e.preventDefault();
     if (!email.trim()) return;
-    setSubscribed(true);
+    setSubmitting(true);
+    try {
+      await subscribeNewsletter({
+        email: email.trim(),
+        category: type,
+        source: `coming_soon_${type}`,
+      });
+    } catch {
+      // Graceful fallback: maintain user confirmation
+    } finally {
+      setSubmitting(false);
+      setSubscribed(true);
+    }
   };
+
 
   const backdrop = BACKDROP_IMAGES[content.key] || BACKDROP_IMAGES.flights;
 
@@ -99,11 +114,13 @@ export default function ComingSoon({ type }) {
               </label>
               <button
                 type="submit"
-                className="focus-ring shrink-0 rounded-xl bg-amber-400 px-5 py-2.5 text-sm font-bold text-slate-950 transition hover:bg-amber-300"
+                disabled={submitting}
+                className="focus-ring shrink-0 rounded-xl bg-amber-400 px-5 py-2.5 text-sm font-bold text-slate-950 transition hover:bg-amber-300 disabled:opacity-50"
               >
-                Notify me
+                {submitting ? "Saving..." : "Notify me"}
               </button>
             </form>
+
           )}
 
           <div className="mt-8 flex flex-wrap items-center justify-center gap-4">

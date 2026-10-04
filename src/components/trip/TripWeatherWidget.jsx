@@ -1,14 +1,11 @@
 import {
   CloudRain,
-  Wind,
   ShieldCheck,
   AlertTriangle,
   AlertOctagon,
-  Sparkles,
-  ExternalLink,
   ChevronRight,
-  Mountain,
   RefreshCw,
+  Droplets,
 } from "lucide-react";
 
 export default function TripWeatherWidget({
@@ -18,9 +15,9 @@ export default function TripWeatherWidget({
   onOpenAdvisory,
   onRefresh,
 }) {
-  const isSafe = advisory?.status === "SAFE";
   const isCaution = advisory?.status === "CAUTION";
   const isDanger = advisory?.status === "DANGER";
+  const humidity = weatherData?.current?.relative_humidity_2m;
 
   const statusBadge = isDanger ? (
     <span className="inline-flex items-center gap-1.5 rounded-full bg-red-100 px-3 py-1 text-xs font-bold text-red-800 border border-red-200">
@@ -41,6 +38,7 @@ export default function TripWeatherWidget({
 
   return (
     <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-card space-y-4">
+
       {/* Top Header */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2.5">
@@ -105,9 +103,16 @@ export default function TripWeatherWidget({
               </div>
             </div>
 
-            {/* Precipitation */}
+            {/* Precipitation & Humidity */}
             <div className="rounded-xl bg-slate-50 p-3">
-              <div className="text-[11px] font-semibold text-slate-500">Precipitation</div>
+              <div className="text-[11px] font-semibold text-slate-500 flex items-center justify-between">
+                <span>Precipitation</span>
+                {humidity !== undefined && (
+                  <span className="flex items-center gap-0.5 text-[10px] text-slate-400 font-medium">
+                    <Droplets className="h-3 w-3 text-blue-500" /> {humidity}%
+                  </span>
+                )}
+              </div>
               <div className="mt-1 flex items-baseline gap-1">
                 <span className="text-xl font-bold text-slate-900">
                   {advisory?.metrics?.precipitationMm ?? 0}
@@ -115,6 +120,7 @@ export default function TripWeatherWidget({
                 <span className="text-xs text-slate-500">mm</span>
               </div>
             </div>
+
 
             {/* Safety Verdict */}
             <div

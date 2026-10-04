@@ -21,7 +21,6 @@ export default function MyTrips() {
 
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
     listTrips({ userId: user?.id, page: 0, size: 20 })
       .then((data) => {
         if (cancelled) return;
@@ -29,12 +28,17 @@ export default function MyTrips() {
         setTrips(rows);
         setError("");
       })
-      .catch((err) => !cancelled && setError(err.message))
-      .finally(() => !cancelled && setLoading(false));
+      .catch((err) => {
+        if (!cancelled) setError(err.message);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
     return () => {
       cancelled = true;
     };
   }, [user?.id]);
+
 
   const updateLocal = (tripId, patch) => {
     setTrips((prev) => prev.map((t) => ((t.id ?? t.tripId) === tripId ? { ...t, ...patch } : t)));

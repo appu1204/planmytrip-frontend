@@ -73,12 +73,12 @@ export default function CreateTrip() {
   // Debounced live weather check when destination or checkIn changes
   useEffect(() => {
     if (!form.destination || form.destination.trim().length < 2) {
-      setAdvisory(null);
-      return;
+      const resetTimer = setTimeout(() => setAdvisory(null), 0);
+      return () => clearTimeout(resetTimer);
     }
 
-    setWeatherLoading(true);
     const timer = setTimeout(() => {
+      setWeatherLoading(true);
       fetchDestinationWeather(form.destination)
         .then((data) => {
           const evalRes = evaluateWeatherSafety(data, { startDate: form.checkIn });
@@ -94,6 +94,7 @@ export default function CreateTrip() {
 
     return () => clearTimeout(timer);
   }, [form.destination, form.checkIn]);
+
 
   const validate = () => {
     const next = {};
@@ -123,19 +124,29 @@ export default function CreateTrip() {
         checkOut: form.checkOut,
         adults: form.adults,
         children: form.children,
+        budget: form.budget,
+        currency: "INR",
         status: status === "draft" ? "DRAFT" : "PLANNED",
       });
 
-      const tripId = trip?.id ?? trip?.tripId;
+      const tripId = trip?.id ?? trip?.tripId ?? trip?.data?.id ?? trip?.data?.tripId;
       if (tripId) {
         await putTripPreferences(tripId, {
           budget: form.budget,
           currency: "INR",
           estimatedCost: estimate.total,
-        }).catch(() => {});
+        }).catch((err) => {
+          console.warn("Optional trip preferences sync warning:", err);
+        });
       }
 
-      navigate("/trips", { state: { justCreated: form.tripName } });
+      if (status === "draft") {
+        navigate("/trips", { state: { justCreated: form.tripName } });
+      } else if (tripId) {
+        navigate(`/trips/${tripId}`, { state: { justCreated: form.tripName } });
+      } else {
+        navigate("/trips", { state: { justCreated: form.tripName } });
+      }
     } catch (err) {
       setApiError(err.message);
     } finally {

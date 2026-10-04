@@ -1,19 +1,41 @@
 import client from "./client";
 
-// Backed by Trip Service / Destination catalog — a wishlist entry links
-// the current user to a destination they've saved for later.
+async function requestWithFallback(primaryFn, fallbackFn) {
+  try {
+    return await primaryFn();
+  } catch (err) {
+    if (err?.statusCode === 404 && fallbackFn) {
+      return await fallbackFn();
+    }
+    throw err;
+  }
+}
 
-// GET /wishlist — every destination the current user has saved.
-export const listWishlist = () => client.get("/wishlist");
+// GET /api/trip/wishlist — every destination the current user has saved.
+export const listWishlist = () =>
+  requestWithFallback(
+    () => client.get("/api/trip/wishlist"),
+    () => client.get("/wishlist")
+  );
 
-// POST /wishlist — save a destination (called from the heart icon on destination cards).
+// POST /api/trip/wishlist — save a destination
 export const addWishlistItem = (destination) =>
-  client.post("/wishlist", destination);
+  requestWithFallback(
+    () => client.post("/api/trip/wishlist", destination),
+    () => client.post("/wishlist", destination)
+  );
 
-// DELETE /wishlist/:itemId — un-save a destination ("Remove" button on the wishlist page).
+// DELETE /api/trip/wishlist/:itemId — un-save a destination
 export const removeWishlistItem = (itemId) =>
-  client.delete(`/wishlist/${itemId}`);
+  requestWithFallback(
+    () => client.delete(`/api/trip/wishlist/${itemId}`),
+    () => client.delete(`/wishlist/${itemId}`)
+  );
 
-// GET /wishlist/suggestions — AI-suggested destinations based on the user's wishlist + trip history.
+// GET /api/trip/wishlist/suggestions — AI-suggested destinations
 export const getWishlistSuggestions = (persona) =>
-  client.get("/wishlist/suggestions", { params: { persona } });
+  requestWithFallback(
+    () => client.get("/api/trip/wishlist/suggestions", { params: { persona } }),
+    () => client.get("/wishlist/suggestions", { params: { persona } })
+  );
+

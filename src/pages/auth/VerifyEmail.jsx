@@ -7,17 +7,23 @@ import { CheckCircle2, XCircle, Loader2 } from "lucide-react";
 export default function VerifyEmail() {
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token");
-  const [status, setStatus] = useState("loading"); // loading | success | error
+  const [status, setStatus] = useState(() => (token ? "loading" : "error"));
 
   useEffect(() => {
-    if (!token) {
-      setStatus("error");
-      return;
-    }
+    if (!token) return;
+    let cancelled = false;
     verifyEmail(token)
-      .then(() => setStatus("success"))
-      .catch(() => setStatus("error"));
+      .then(() => {
+        if (!cancelled) setStatus("success");
+      })
+      .catch(() => {
+        if (!cancelled) setStatus("error");
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [token]);
+
 
   const content = {
     loading: {

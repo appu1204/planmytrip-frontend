@@ -164,8 +164,9 @@ export async function fetchDestinationWeather(rawDestination = "") {
  * Evaluates weather conditions against natural disaster / hazard criteria
  * Returns professional safety verdict, hazard breakdowns, and recommendations
  */
-export function evaluateWeatherSafety(weatherData, tripDates = {}) {
+export function evaluateWeatherSafety(weatherData, _tripDates = {}) {
   if (!weatherData) return null;
+
 
   const destination = weatherData.destination || "your destination";
   const normDest = (weatherData.normalizedDestination || destination).toLowerCase();

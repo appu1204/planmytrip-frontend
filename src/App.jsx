@@ -36,6 +36,13 @@ export default function App() {
       <AuthProvider>
         <Routes>
           <Route path="/" element={<Navigate to="/home" replace />} />
+          <Route path="/home" element={<Home />} />
+          <Route path="/planner" element={<AIPlanner />} />
+          <Route path="/flights" element={<ComingSoon type="flights" />} />
+          <Route path="/hotels" element={<ComingSoon type="hotels" />} />
+          <Route path="/activities" element={<ComingSoon type="activities" />} />
+          <Route path="/transport" element={<ComingSoon type="transport" />} />
+          <Route path="/coming-soon" element={<ComingSoon type="flights" />} />
 
           {/* Legacy auth URLs open the account dialog on Home. */}
           <Route path="/register" element={<HomeAuthRedirect mode="register" />} />
@@ -44,27 +51,15 @@ export default function App() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/verify-email" element={<VerifyEmail />} />
-          <Route path="/home" element={<Home />} />
 
-          {/* Onboarding */}
+          {/* Protected Routes (Require active user authentication) */}
           <Route element={<ProtectedRoute />}>
             <Route path="/onboarding/persona" element={<PersonaSelect />} />
-
-            {/* Phase 3 — trips */}
             <Route path="/trips" element={<MyTrips />} />
             <Route path="/trips/new" element={<CreateTrip />} />
             <Route path="/trips/:tripId" element={<TripDetail />} />
-
-            {/* Phase 4 — AI planning, wishlist, profile */}
-            <Route path="/planner" element={<AIPlanner />} />
             <Route path="/wishlist" element={<Wishlist />} />
             <Route path="/profile" element={<Profile />} />
-
-            {/* Booking Service — not built yet, placeholder keeps nav links honest */}
-            <Route path="/flights" element={<ComingSoon type="flights" />} />
-            <Route path="/hotels" element={<ComingSoon type="hotels" />} />
-            <Route path="/activities" element={<ComingSoon type="activities" />} />
-            <Route path="/transport" element={<ComingSoon type="transport" />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/home" replace />} />

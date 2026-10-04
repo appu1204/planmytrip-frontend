@@ -1,18 +1,41 @@
 import client from "./client";
 
-// Maps to Notification Service in the architecture doc.
+async function requestWithFallback(primaryFn, fallbackFn) {
+  try {
+    return await primaryFn();
+  } catch (err) {
+    if (err?.statusCode === 404 && fallbackFn) {
+      return await fallbackFn();
+    }
+    throw err;
+  }
+}
 
-// GET /notifications — the current user's notification feed, newest first.
-export const listNotifications = () => client.get("/notifications").then((res) => res.data);
+// GET /api/notification/notifications — feed, newest first
+export const listNotifications = () =>
+  requestWithFallback(
+    () => client.get("/api/notification/notifications"),
+    () => client.get("/notifications")
+  );
 
-// PATCH /notifications/read-all — clear the unread badge shown on Profile / Navbar.
+// PATCH /api/notification/read-all — clear unread badge
 export const markAllNotificationsRead = () =>
-  client.patch("/notifications/read-all").then((res) => res.data);
+  requestWithFallback(
+    () => client.patch("/api/notification/read-all"),
+    () => client.patch("/notifications/read-all")
+  );
 
-// GET /notifications/preferences — which notification channels/types are currently on.
+// GET /api/notification/preferences — channel preferences
 export const getNotificationPreferences = () =>
-  client.get("/notifications/preferences").then((res) => res.data);
+  requestWithFallback(
+    () => client.get("/api/notification/preferences"),
+    () => client.get("/notifications/preferences")
+  );
 
-// PUT /notifications/preferences — save the on/off toggles from the Profile settings panel.
+// PUT /api/notification/preferences — save channel preferences
 export const updateNotificationPreferences = (payload) =>
-  client.put("/notifications/preferences", payload).then((res) => res.data);
+  requestWithFallback(
+    () => client.put("/api/notification/preferences", payload),
+    () => client.put("/notifications/preferences", payload)
+  );
+

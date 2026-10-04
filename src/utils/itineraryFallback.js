@@ -172,9 +172,12 @@ const DESTINATION_CENTERS = {
   paris: { lat: 48.8566, lng: 2.3522, label: "Paris, France" },
   london: { lat: 51.5074, lng: -0.1278, label: "London, UK" },
   tokyo: { lat: 35.6762, lng: 139.6503, label: "Tokyo, Japan" },
+  kyoto: { lat: 35.0116, lng: 135.7681, label: "Kyoto, Japan" },
   "new york": { lat: 40.7128, lng: -74.0060, label: "New York, USA" },
   maldives: { lat: 3.2028, lng: 73.2207, label: "Maldives" },
   switzerland: { lat: 47.3769, lng: 8.5417, label: "Zurich, Switzerland" },
+  "swiss alps": { lat: 46.6863, lng: 7.8632, label: "Swiss Alps, Switzerland" },
+  interlaken: { lat: 46.6863, lng: 7.8632, label: "Interlaken, Switzerland" },
   rome: { lat: 41.9028, lng: 12.4964, label: "Rome, Italy" },
   barcelona: { lat: 41.3879, lng: 2.1699, label: "Barcelona, Spain" },
 };
@@ -262,6 +265,41 @@ const SPECIFIC_PLACES = [
   { keywords: ["radha kund", "shyam kund"], lat: 27.5255, lng: 77.4950, name: "Radha Kund & Shyam Kund" },
   { keywords: ["barsana", "radharani temple"], lat: 27.6492, lng: 77.3745, name: "Radharani Temple Barsana" },
   { keywords: ["gokul", "raman reti"], lat: 27.4398, lng: 77.7197, name: "Gokul & Raman Reti" },
+
+  // Kyoto Landmarks
+  { keywords: ["fushimi inari", "torii gates"], lat: 34.9671, lng: 135.7727, name: "Fushimi Inari-taisha" },
+  { keywords: ["kiyomizu-dera", "kiyomizu"], lat: 34.9949, lng: 135.7850, name: "Kiyomizu-dera Temple" },
+  { keywords: ["arashiyama", "bamboo grove"], lat: 35.0169, lng: 135.6712, name: "Arashiyama Bamboo Grove" },
+  { keywords: ["kinkaku-ji", "golden pavilion"], lat: 35.0394, lng: 135.7292, name: "Kinkaku-ji (Golden Pavilion)" },
+  { keywords: ["gion", "shirakawa", "machiya"], lat: 35.0037, lng: 135.7770, name: "Historic Gion District" },
+  { keywords: ["nishiki market"], lat: 35.0050, lng: 135.7650, name: "Nishiki Market" },
+  { keywords: ["nara park", "todai-ji"], lat: 34.6851, lng: 135.8430, name: "Nara Deer Park & Todai-ji" },
+
+  // Dubai Landmarks
+  { keywords: ["burj khalifa"], lat: 25.1972, lng: 55.2744, name: "Burj Khalifa" },
+  { keywords: ["dubai mall"], lat: 25.1985, lng: 55.2796, name: "The Dubai Mall" },
+  { keywords: ["palm jumeirah", "atlantis"], lat: 25.1304, lng: 55.1171, name: "Palm Jumeirah & Atlantis" },
+  { keywords: ["dubai marina"], lat: 25.0805, lng: 55.1403, name: "Dubai Marina Promenade" },
+  { keywords: ["dubai creek", "gold souk", "spice souk"], lat: 25.2697, lng: 55.2974, name: "Dubai Creek & Souks" },
+  { keywords: ["museum of the future"], lat: 25.2192, lng: 55.2819, name: "Museum of the Future" },
+
+  // Paris Landmarks
+  { keywords: ["eiffel tower"], lat: 48.8584, lng: 2.2945, name: "Eiffel Tower" },
+  { keywords: ["louvre", "mona lisa"], lat: 48.8606, lng: 2.3376, name: "The Louvre Museum" },
+  { keywords: ["montmartre", "sacre-coeur", "sacré-cœur"], lat: 48.8867, lng: 2.3431, name: "Montmartre & Sacré-Cœur" },
+  { keywords: ["notre-dame", "sainte-chapelle"], lat: 48.8530, lng: 2.3499, name: "Notre-Dame & Sainte-Chapelle" },
+  { keywords: ["versailles"], lat: 48.8049, lng: 2.1204, name: "Palace of Versailles" },
+
+  // Bali Landmarks
+  { keywords: ["ubud", "monkey forest"], lat: -8.5190, lng: 115.2606, name: "Ubud Monkey Forest" },
+  { keywords: ["tegallalang", "rice terrace"], lat: -8.4344, lng: 115.2785, name: "Tegallalang Rice Terraces" },
+  { keywords: ["uluwatu", "kecak"], lat: -8.8291, lng: 115.0849, name: "Uluwatu Cliff Temple" },
+  { keywords: ["nusa penida", "kelingking"], lat: -8.7497, lng: 115.4744, name: "Nusa Penida Kelingking" },
+
+  // Swiss Alps Landmarks
+  { keywords: ["jungfraujoch", "top of europe"], lat: 46.5475, lng: 7.9822, name: "Jungfraujoch Top of Europe" },
+  { keywords: ["lauterbrunnen"], lat: 46.5935, lng: 7.9090, name: "Lauterbrunnen Valley" },
+  { keywords: ["interlaken", "lake brienz"], lat: 46.6863, lng: 7.8632, name: "Interlaken Lake Promenade" },
 ];
 
 // Helper: Normalize destination string (handling typos, extra symbols, aliases, and multi-line inputs)
@@ -364,26 +402,422 @@ export function getDestinationCenter(destination = "", returnFallback = true) {
   return { lat: 20.5937, lng: 78.9629, label: destination || "Destination" };
 }
 
-const ARRIVAL_ACTIVITIES = [
-  { time: "10:30 AM", title: "Arrive & transfer to hotel", note: "Pre-booked cab from the airport/station." },
-  { time: "1:00 PM", title: "Check-in & settle in", note: "Room confirmed, freshen up and recharge." },
-  { time: "5:30 PM", title: "Evening landmark walk", note: "Easy scenic stroll to take in the local atmosphere." },
-];
+// Authentic curated schedules for prominent destinations
+const CURATED_DESTINATION_PLANS = {
+  kyoto: [
+    {
+      label: "Arrival & Gion Historic Lanterns Walk",
+      activities: [
+        { time: "11:00 AM", title: "Arrive at Kyoto Station & Ryokan Check-in", note: "Settle into your accommodation, refresh with authentic green tea." },
+        { time: "2:30 PM", title: "Nishiki Market Street Food Crawl", note: "Sample freshly prepared matcha treats, takoyaki, and seasonal wagashi." },
+        { time: "6:00 PM", title: "Historic Gion Geisha District Evening Stroll", note: "Wander atmospheric wooden machiya houses along the Shirakawa canal." },
+        { time: "8:00 PM", title: "Traditional Kaiseki Multi-Course Dinner", note: "Seasonal multi-course dining featuring fresh Kyoto heirloom vegetables." },
+      ],
+    },
+    {
+      label: "Fushimi Inari Torii & Kiyomizu-dera Heights",
+      activities: [
+        { time: "8:00 AM", title: "Fushimi Inari-taisha 10,000 Vermilion Torii", note: "Early morning hike through the iconic orange shrine tunnels before crowds." },
+        { time: "12:00 PM", title: "Soba Noodle Lunch near Higashiyama", note: "Handmade buckwheat noodles with crisp seasonal tempura." },
+        { time: "2:00 PM", title: "Kiyomizu-dera Wooden Veranda & Otowa Spring", note: "Panoramic views over Kyoto's forest from the ancient cantilevered stage." },
+        { time: "5:30 PM", title: "Sannenzaka & Ninenzaka Preserved Stone Lanes", note: "Cobblestone alleys lined with artisanal pottery, incense, and tea houses." },
+      ],
+    },
+    {
+      label: "Arashiyama Soaring Bamboo Grove & Zen Gardens",
+      activities: [
+        { time: "8:30 AM", title: "Arashiyama Sagano Bamboo Grove Walk", note: "Serene immersion into the soaring bamboo canopy with morning light." },
+        { time: "10:30 AM", title: "Tenryu-ji Zen Garden & Sogenchi Reflection Pond", note: "UNESCO 14th-century landscape garden mirroring the surrounding hills." },
+        { time: "1:00 PM", title: "Yudofu (Hot Tofu Cuisine) Riverside Lunch", note: "Delicate tofu hot pot overlooking the tranquil Katsura River." },
+        { time: "3:30 PM", title: "Iwatayama Monkey Park & Togetsukyo Bridge", note: "Scenic bridge crossing followed by a gentle hike with panoramic city vistas." },
+      ],
+    },
+    {
+      label: "Golden Pavilion & Rock Garden Contemplation",
+      activities: [
+        { time: "9:30 AM", title: "Kinkaku-ji (The Golden Pavilion)", note: "Spectacular gold-leaf Zen temple shimmering above the Mirror Pond." },
+        { time: "11:45 AM", title: "Ryoan-ji Famous 15-Stone Karesansui Zen Garden", note: "Contemplate the iconic minimalist dry rock landscape mystery." },
+        { time: "1:30 PM", title: "Ceremonial Uji Matcha & Sweets Tasting", note: "Whisked ceremonial matcha paired with delicate seasonal confections." },
+        { time: "5:00 PM", title: "Pontocho Alley Sunset & Riverside Dining", note: "Atmospheric dining terrace overlooking the Kamogawa river." },
+      ],
+    },
+    {
+      label: "Nara Deer Park & Great Bronze Buddha",
+      activities: [
+        { time: "9:00 AM", title: "Scenic Express Train to Ancient Nara", note: "Short 45-minute journey into Japan's first permanent imperial capital." },
+        { time: "10:30 AM", title: "Nara Park & Friendly Bowing Shika Deer", note: "Feed wholesome deer senbei crackers in the serene parklands." },
+        { time: "1:00 PM", title: "Todai-ji Great Eastern Temple & Daibutsu", note: "Marvel at the world's largest bronze Buddha in the massive timber hall." },
+        { time: "4:30 PM", title: "Kasuga-taisha Lantern Shrine & Return to Kyoto", note: "Walk through mossy pathways adorned with 3,000 stone lanterns." },
+      ],
+    },
+    {
+      label: "Philosopher's Path & Uji Tea Heritage",
+      activities: [
+        { time: "9:30 AM", title: "Philosopher's Path Canal Walk to Ginkaku-ji", note: "Tranquil stone trail following the canal lined with trees and artisan studios." },
+        { time: "12:30 PM", title: "Artisan Kyoto Bento Lunch Experience", note: "Fresh seasonal bento highlighting green-tea infused delicacies." },
+        { time: "3:00 PM", title: "Heian Jingu Grand Torii & Floating Stepping Stones", note: "Expansive weeping willow garden and vermilion shrine courtyards." },
+        { time: "7:00 PM", title: "Farewell Craft Sake Tasting & Yakitori Dinner", note: "Sample Fushimi underground spring sakes paired with char-grilled skewers." },
+      ],
+    },
+    {
+      label: "Keepsakes, Shinkansen Departure & Farewell",
+      activities: [
+        { time: "9:30 AM", title: "Kyoto Station Cube & Souvenir Hunt", note: "Pick up Yatsuhashi cinnamon sweets, Uji green tea, and Kiyomizu ceramics." },
+        { time: "12:00 PM", title: "Shinkansen Bullet Train / Kansai Airport Express", note: "Depart with unforgettable memories of imperial Kyoto." },
+      ],
+    },
+  ],
+  goa: [
+    {
+      label: "Arrival & Fort Aguada Golden Sunset",
+      activities: [
+        { time: "12:00 PM", title: "Arrive at Dabolim/Mopa & Beach Resort Check-in", note: "Welcome coconut drink, unpack in a breezy coastal suite." },
+        { time: "3:30 PM", title: "Relaxation at Candolim Beach Promenade", note: "Warm sand, sea breeze, and refreshing tropical cooler." },
+        { time: "5:30 PM", title: "Fort Aguada Lighthouse & Arabian Sea Sunset", note: "17th-century Portuguese fortress overlooking the sweeping ocean horizon." },
+        { time: "8:00 PM", title: "Candlelit Coastal Seafood Dinner", note: "Butter garlic prawns, Goan fish curry, and live acoustic tunes." },
+      ],
+    },
+    {
+      label: "North Goa Heritage & Beach Shacks",
+      activities: [
+        { time: "9:00 AM", title: "Chapora Fort Panoramas & Dil Chahta Hai Viewpoint", note: "Elevated ramparts with endless vistas of Vagator and Morjim coastlines." },
+        { time: "11:30 AM", title: "Anjuna Beach Flea Market & Bohemian Cafes", note: "Browse handcrafted jewelry, beachwear, and sip artisanal iced pour-overs." },
+        { time: "2:00 PM", title: "Lunch at Thalassa / Olive Bar Clifftop", note: "Greek-Mediterranean fare perched dramatically on the red clifftops." },
+        { time: "5:00 PM", title: "Vagator Beach Sundowner & Music", note: "Vibrant beach club vibes with sunset beats." },
+      ],
+    },
+    {
+      label: "Old Goa Baroque Churches & Fontainhas Latin Quarter",
+      activities: [
+        { time: "9:30 AM", title: "Basilica of Bom Jesus & Se Cathedral", note: "UNESCO baroque cathedrals holding the sacred relics of St. Francis Xavier." },
+        { time: "12:30 PM", title: "Fontainhas Panaji Latin Quarter Walking Tour", note: "Pastel yellow and blue heritage villas, wrought-iron balconies, and tiled azulejos." },
+        { time: "2:00 PM", title: "Authentic Goan-Portuguese Lunch at Viva Panjim", note: "Traditional chicken cafreal, prawn balchão, and warm bebinca dessert." },
+        { time: "5:30 PM", title: "Mandovi River Sunset Cruise & Cultural Folk Dance", note: "Evening cruise with Goan Dekhni and Fugdi folk performances." },
+      ],
+    },
+    {
+      label: "Water Sports & South Goa Serenity",
+      activities: [
+        { time: "8:30 AM", title: "Dolphin Spotting & Water Sports at Baga/Calangute", note: "Speedboat ride into the bay for dolphin sightings and parasailing." },
+        { time: "1:00 PM", title: "Beachfront Lunch at Britto's / Curlies", note: "Chilled tropical beverages and freshly baked crab xacuti by the waves." },
+        { time: "4:00 PM", title: "Scenic Drive South to Palolem or Colva Beach", note: "Crescent-shaped calm bay with leaning coconut palms." },
+        { time: "7:30 PM", title: "Beachside Bonfire & Stargazing", note: "Unwind under the palms with the soothing sound of Arabian waves." },
+      ],
+    },
+    {
+      label: "Spice Plantation, Panaji Shopping & Farewell",
+      activities: [
+        { time: "9:30 AM", title: "Sahakari Spice Plantation Guided Tour & Lunch", note: "Discover cardamom, vanilla, cinnamon groves; savor traditional banana leaf feast." },
+        { time: "1:30 PM", title: "Panaji Market Cashew & Feni Shopping", note: "Pick up roasted Goan cashews, artisanal chocolates, and souvenirs." },
+        { time: "4:00 PM", title: "Transfer to Airport / Railway Station", note: "Depart with golden tans and unforgettable beach memories." },
+      ],
+    },
+  ],
+  kashmir: [
+    {
+      label: "Arrival & Dal Lake Houseboat Experience",
+      activities: [
+        { time: "11:30 AM", title: "Arrive at Srinagar Airport & Dal Lake Transfer", note: "Scenic drive through chinar-lined boulevards to the lake ghat." },
+        { time: "1:00 PM", title: "Check-in to Luxury Carved Cedar Houseboat", note: "Sip aromatic Kashmiri Kahwa with crushed saffron and almonds." },
+        { time: "4:30 PM", title: "Sunset Shikara Ride to Char Chinar & Floating Gardens", note: "Gliding across calm waters with reflection of Zabarwan mountains." },
+        { time: "8:00 PM", title: "Traditional Kashmiri Wazwan Feast", note: "Multi-course feast: Rogan Josh, Gushtaba, and Rista served on a traditional Trami." },
+      ],
+    },
+    {
+      label: "Mughal Gardens & Old Srinagar Heritage",
+      activities: [
+        { time: "9:00 AM", title: "Nishat Bagh & Shalimar Bagh Royal Terraces", note: "Cascading Mughal fountains, vibrant flower beds, and ancient chinar shade." },
+        { time: "12:30 PM", title: "Hazratbal Dargah & Dal Lake Shoreline Walk", note: "White marble shrine overlooking pristine northern waters." },
+        { time: "2:30 PM", title: "Old Srinagar Heritage Walk & Jamia Masjid", note: "Marvel at 378 deodar timber pillars in the historic architectural marvel." },
+        { time: "5:30 PM", title: "Chashme Shahi Natural Spring & Pari Mahal Sunset", note: "Fairies' abode perched high above Dal Lake with unmatched sunset views." },
+      ],
+    },
+    {
+      label: "Gulmarg Alpine Meadows & Gondola Ride",
+      activities: [
+        { time: "8:00 AM", title: "Scenic Drive to Gulmarg 'Meadow of Flowers'", note: "Winding pine-clad roads ascending into snow-crowned alpine vistas." },
+        { time: "10:30 AM", title: "Gulmarg Gondola Phase 1 & 2 to Apharwat Peak", note: "One of the highest cable cars in the world reaching 13,780 feet." },
+        { time: "1:30 PM", title: "Alpine Lunch with Mountain Panorama", note: "Hot mutton yakhni and steaming Kashmiri dum aloo overlooking peaks." },
+        { time: "4:00 PM", title: "St. Mary's Church & Golf Course Stroll", note: "Victorian stone church amidst rolling meadows." },
+      ],
+    },
+    {
+      label: "Pahalgam Valley of Shepherds & Betaab Valley",
+      activities: [
+        { time: "8:00 AM", title: "Drive through Pampore Saffron Fields to Pahalgam", note: "Witness purple saffron blooms (in season) and cricket bat willow workshops." },
+        { time: "11:30 AM", title: "Betaab Valley & Aru Valley Exploration", note: "Lush green pine forests with the crystal Lidder River meandering through." },
+        { time: "2:00 PM", title: "Riverside Picnic & Fresh Trout Tasting", note: "Enjoy freshly caught local Lidder trout cooked with mountain herbs." },
+        { time: "5:30 PM", title: "Pony Ride to Baisaran 'Mini Switzerland'", note: "Expansive green plateau surrounded by dense deodar forests." },
+      ],
+    },
+    {
+      label: "Saffron, Pashmina & Farewell Departure",
+      activities: [
+        { time: "9:30 AM", title: "Lal Chowk Artisan Pashmina & Walnut Wood Shopping", note: "Direct-from-weaver GI-tagged Pashmina shawls and hand-carved keepsakes." },
+        { time: "12:00 PM", title: "Farewell Kahwa at Chai Jaai Tea Room", note: "Cosy vintage tea house along the Jhelum river embankment." },
+        { time: "2:30 PM", title: "Transfer to Srinagar Airport", note: "Depart with memories of paradise on earth." },
+      ],
+    },
+  ],
+  kerala: [
+    {
+      label: "Kochi Arrival & Fort Kochi Colonial Heritage",
+      activities: [
+        { time: "11:00 AM", title: "Arrive at Cochin Int'l & Fort Kochi Heritage Hotel", note: "Check-in to a restored Dutch or Portuguese heritage bungalow." },
+        { time: "2:30 PM", title: "Chinese Fishing Nets & Mattancherry Spice Bazaar", note: "Centuries-old cantilevered fishing nets and fragrant cardamom warehouses." },
+        { time: "5:30 PM", title: "Kathakali Classical Dance & Kalaripayattu Martial Arts", note: "Vibrant eye expressions, intricate makeup, and ancient martial arts demonstrations." },
+        { time: "8:00 PM", title: "Coastal Malabar Seafood Dinner", note: "Karimeen Pollichathu (pearl spot fish in banana leaf) with appams." },
+      ],
+    },
+    {
+      label: "Munnar Rolling Tea Estates & Waterfalls",
+      activities: [
+        { time: "8:00 AM", title: "Scenic Western Ghats Drive to Munnar", note: "Picturesque waterfalls (Cheeyappara & Valara) en route through misty hills." },
+        { time: "12:30 PM", title: "Tea Museum & Factory Processing Tour", note: "Learn the secrets of orthodox tea crafting and enjoy fresh tea tasting." },
+        { time: "3:30 PM", title: "Mattupetty Dam & Echo Point Boating", note: "Tranquil reservoir nestled between rolling green Shola hills." },
+        { time: "6:00 PM", title: "Cool Mist Walk through Lockhart Tea Gap", note: "Panoramic sunset across endless emerald tea velvet hills." },
+      ],
+    },
+    {
+      label: "Eravikulam Wildlife & Journey to Alleppey",
+      activities: [
+        { time: "8:00 AM", title: "Eravikulam National Park & Nilgiri Tahr Safari", note: "Spot the endangered mountain goat amidst high-altitude grasslands." },
+        { time: "11:30 AM", title: "Drive Down to Alleppey (Alappuzha) Backwaters", note: "Descend into lush coconut palm country." },
+        { time: "2:00 PM", title: "Traditional Kerala Sadhya on Banana Leaf", note: "24-item vegetarian feast featuring avial, thoran, sambar, and payasam." },
+        { time: "5:00 PM", title: "Marari Beach Golden Hour Walk", note: "Peaceful white-sand shoreline with traditional wooden fishing boats." },
+      ],
+    },
+    {
+      label: "Private Houseboat Cruise on Vembanad Lake",
+      activities: [
+        { time: "12:00 PM", title: "Board Traditional Kettuvallam Houseboat", note: "Thatch-roofed luxury wooden boat with personal chef and captain." },
+        { time: "1:30 PM", title: "Backwater Lunch Cruise through Narrow Canals", note: "Freshly prepared pearl spot fish and tiger prawns as palms glide past." },
+        { time: "4:00 PM", title: "Village Canoe Excursion into Hidden Waterways", note: "Witness coir yarn spinning, duck farming, and village backwater life." },
+        { time: "7:00 PM", title: "Houseboat Mooring under Starlit Backwaters", note: "Serene night surrounded by the gentle lapping of calm waters." },
+      ],
+    },
+    {
+      label: "Ayurvedic Rejuvenation & Departure",
+      activities: [
+        { time: "9:00 AM", title: "Traditional Abhyanga Ayurvedic Herbal Massage", note: "Warm medicated herbal oils to melt away tension and rejuvenate." },
+        { time: "12:00 PM", title: "Spices & Banana Chips Souvenir Shopping", note: "Freshly fried coconut oil chips, black pepper, and cinnamon quills." },
+        { time: "3:00 PM", title: "Transfer to Cochin International Airport", note: "Farewell to God's Own Country." },
+      ],
+    },
+  ],
+  rajasthan: [
+    {
+      label: "Jaipur Arrival & Nahargarh Sunset Panorama",
+      activities: [
+        { time: "11:30 AM", title: "Arrive in Jaipur & Haveli Check-in", note: "Royal Rajasthani welcome with garland, tilak, and cold badam milk." },
+        { time: "2:30 PM", title: "Albert Hall Museum & Ram Niwas Gardens", note: "Indo-Saracenic masterpiece housing ancient royal weapons and artifacts." },
+        { time: "5:30 PM", title: "Nahargarh Fort Clifftop Sunset", note: "Spectacular golden panoramic view over the entire Pink City skyline." },
+        { time: "8:00 PM", title: "Authentic Dal Baati Churma Dinner", note: "Traditional ghee-soaked baatis with five-lentil dal and sweet churma." },
+      ],
+    },
+    {
+      label: "Amer Fort & Sheesh Mahal Royal Grandeur",
+      activities: [
+        { time: "8:30 AM", title: "Amer Fort & Sheesh Mahal (Mirror Palace)", note: "Ascend the royal ramparts and marvel at thousand-mirror reflections." },
+        { time: "12:00 PM", title: "Jal Mahal Viewpoint & Photo Stop", note: "The mysterious water palace floating in the center of Man Sagar Lake." },
+        { time: "1:30 PM", title: "LMB Royal Lunch in Johari Bazaar", note: "Famous Rajasthani thali and pyaaz kachori in Johari Bazaar." },
+        { time: "3:30 PM", title: "City Palace & Jantar Mantar UNESCO Observatory", note: "Walk through the Chandra Mahal courtyards and world's largest stone sundial." },
+      ],
+    },
+    {
+      label: "Hawa Mahal & Artisan Bazaars Trail",
+      activities: [
+        { time: "9:00 AM", title: "Hawa Mahal (Palace of Winds) Early View", note: "953 honeycomb lattice windows designed for royal women to view street pageantry." },
+        { time: "11:30 AM", title: "Johari Bazaar & Bapu Bazaar Artisan Walk", note: "Gemstones, silver jewelry, blue pottery, and hand-block printed Sanganeri quilts." },
+        { time: "2:00 PM", title: "Lassi at Lassiwala (Since 1944) on MI Road", note: "Thick, creamy malai lassi served in traditional terracotta kulhads." },
+        { time: "5:30 PM", title: "Chokhi Dhani Ethnic Village Cultural Celebration", note: "Puppet shows, camel rides, folk fire dancers, and rustic feast." },
+      ],
+    },
+    {
+      label: "Udaipur Lake Pichola & Palaces Excursion",
+      activities: [
+        { time: "8:30 AM", title: "Scenic Journey into Royal Mewar / Udaipur", note: "Venture past Aravalli hills to the City of Lakes." },
+        { time: "1:00 PM", title: "Lake Pichola Clifftop Dining", note: "Overlooking Jag Mandir and the ethereal white marble Lake Palace." },
+        { time: "3:30 PM", title: "City Palace Complex & Crystal Gallery", note: "The largest palace complex in Rajasthan with ornate mosaics and glasswork." },
+        { time: "6:00 PM", title: "Sunset Boat Cruise on Lake Pichola", note: "Gentle golden-hour ripples with palace lights illuminating the water." },
+      ],
+    },
+    {
+      label: "Handicrafts & Royal Farewell",
+      activities: [
+        { time: "9:30 AM", title: "Bandhani & Block-Print Fabric Souvenir Shopping", note: "Pick up authentic Jaipuri razai and miniature paintings." },
+        { time: "12:30 PM", title: "Transfer to Airport / Railway Station", note: "Depart with royal memories of Rajasthan." },
+      ],
+    },
+  ],
+  dubai: [
+    {
+      label: "Dubai Arrival & Burj Khalifa Sunset",
+      activities: [
+        { time: "12:00 PM", title: "Arrive at Dubai DXB & Downtown Hotel Check-in", note: "Transfer via private luxury SUV to your downtown hotel." },
+        { time: "3:30 PM", title: "Dubai Mall & Underwater Aquarium Walkthrough", note: "Explore premier retail avenues and giant shark walkthrough tunnel." },
+        { time: "5:45 PM", title: "Burj Khalifa 124th & 125th Floor Observation Deck", note: "Breathtaking 360-degree sunset panorama over Dubai's skyscraper grid." },
+        { time: "8:00 PM", title: "Dubai Fountain Spectacle & Waterfront Dinner", note: "Synchronized water, music, and light show with Michelin-starred dining." },
+      ],
+    },
+    {
+      label: "Old Dubai Heritage, Creek Abra & Future Wonders",
+      activities: [
+        { time: "9:00 AM", title: "Al Fahidi Historical District & Coffee Museum", note: "Wind-tower architecture, narrow alleys, and Arabic coffee culture." },
+        { time: "11:30 AM", title: "Traditional Abra Boat Crossing on Dubai Creek", note: "Historic 1-dirham wooden ferry ride between Bur Dubai and Deira." },
+        { time: "1:00 PM", title: "Gold & Spice Souks Fragrance Exploration", note: "Glittering jewelry windows and fragrant sacks of saffron, frankincense, and tea." },
+        { time: "4:00 PM", title: "Museum of the Future Architectural Wonder", note: "Pioneering calligraphy-etched torus building showcasing the world in 2071." },
+      ],
+    },
+    {
+      label: "Red Dune 4x4 Safari & Bedouin Camp",
+      activities: [
+        { time: "10:00 AM", title: "Morning Leisure & Rooftop Pool Relaxation", note: "Sunbathe with skyline views and refreshing mocktails." },
+        { time: "2:30 PM", title: "Red Dune 4x4 Desert Safari & Sandboarding", note: "Thrilling dune bashing across the Lahbab desert red dunes." },
+        { time: "5:30 PM", title: "Sunset Camel Caravan & Falconry Encounter", note: "Golden desert light photoshoot with traditional Emirati falcon." },
+        { time: "7:30 PM", title: "Bedouin BBQ Feast with Tanoura & Fire Show", note: "Grilled meats, fresh hummus, shisha lounge, and spinning Tanoura dancers under stars." },
+      ],
+    },
+    {
+      label: "Palm Jumeirah & Marina Yacht Cruise",
+      activities: [
+        { time: "9:30 AM", title: "The View at The Palm 360 Observatory", note: "Stunning island vista of the palm fronds and Arabian Gulf." },
+        { time: "12:30 PM", title: "Lunch at Atlantis The Royal", note: "World-class gastronomy overlooking the Grand Cascade fountain." },
+        { time: "4:30 PM", title: "Private Dubai Marina Sunset Yacht Cruise", note: "Cruise past Ain Dubai ferris wheel and JBR clifftop residences." },
+        { time: "8:00 PM", title: "Chic Beach Club Dinner at Pier 7 Marina", note: "Multi-tiered dining with panoramic yachts and illuminated waterways." },
+      ],
+    },
+    {
+      label: "Souk Madinat & Airport Departure",
+      activities: [
+        { time: "10:00 AM", title: "Souk Madinat Jumeirah & Burj Al Arab Views", note: "Traditional Arabian bazaar with serene waterways and luxury keepsakes." },
+        { time: "1:30 PM", title: "Duty Free Shopping & Transfer to DXB", note: "Depart with memories of futuristic luxury." },
+      ],
+    },
+  ],
+  paris: [
+    {
+      label: "Parisian Welcome & Seine River Cruise",
+      activities: [
+        { time: "12:00 PM", title: "Arrive at CDG Airport & Boutique Hotel Check-in", note: "Check-in to a charming hotel in Saint-Germain or Le Marais." },
+        { time: "3:30 PM", title: "Tuileries Gardens & Café de Flore Espresso", note: "Classic Parisian café culture with buttery croissants and café au lait." },
+        { time: "6:00 PM", title: "Evening Seine River Glass-Canopy Boat Cruise", note: "Glide past illuminated bridges, Notre-Dame, and the Musée d'Orsay." },
+        { time: "9:00 PM", title: "Eiffel Tower Twinkle & French Bistro Dinner", note: "Witness the diamond sparkle show; savor boeuf bourguignon." },
+      ],
+    },
+    {
+      label: "The Louvre & Historic Heart of Paris",
+      activities: [
+        { time: "9:00 AM", title: "The Louvre Masterpieces (Mona Lisa & Venus)", note: "Fast-track entry into the world's most famous palace-turned-museum." },
+        { time: "1:00 PM", title: "Artisan Baguette & Fromage Picnic at Palais Royal", note: "Crisp baguettes, aged Comté, and fresh grapes in the historic courtyard." },
+        { time: "3:00 PM", title: "Île de la Cité, Notre-Dame & Sainte-Chapelle", note: "Marvel at the 13th-century radiant stained-glass windows of Sainte-Chapelle." },
+        { time: "6:30 PM", title: "Latin Quarter Bookshops & Boulevard Saint-Michel", note: "Browse Shakespeare and Company and historic cobblestone lanes." },
+      ],
+    },
+    {
+      label: "Montmartre Bohemian Artists & Sacré-Cœur",
+      activities: [
+        { time: "9:30 AM", title: "Montmartre Village & Sacré-Cœur Basilica", note: "Funicular ride up to the highest natural point in Paris with sweeping views." },
+        { time: "12:00 PM", title: "Place du Tertre Open-Air Portrait Artists", note: "Watch watercolorists and sketch artists in the historic bohemian square." },
+        { time: "2:00 PM", title: "French Crêperie Lunch in Pigalle", note: "Savory buckwheat galettes paired with artisanal Breton cider." },
+        { time: "5:00 PM", title: "Champs-Élysées & Arc de Triomphe Sunset Rooftop", note: "Climb the monument for sunset views aligned with the grand avenue." },
+      ],
+    },
+    {
+      label: "Palace of Versailles Royal Excursion",
+      activities: [
+        { time: "8:30 AM", title: "RER Train to the Royal Palace of Versailles", note: "Short 35-minute scenic rail journey south of the capital." },
+        { time: "9:45 AM", title: "Hall of Mirrors & King's Grand Apartments", note: "Lavish gold-leaf baroque salons and 357 crystal chandeliers." },
+        { time: "1:00 PM", title: "Grand Canal Garden Stroll & Marie Antoinette Hamlet", note: "Rent a rowboat on the royal canal or stroll the romantic rustic hamlet." },
+        { time: "5:30 PM", title: "Return to Paris & Le Marais Trendy Boutique Walk", note: "Independent designer shops, vintage bookstores, and falafel on Rue des Rosiers." },
+      ],
+    },
+    {
+      label: "Patisserie, Souvenirs & CDG Departure",
+      activities: [
+        { time: "9:30 AM", title: "Ladurée Macarons & Souvenir Gourmet Shopping", note: "Select pastel boxes of salted caramel, rose, and pistachio macarons." },
+        { time: "12:00 PM", title: "Farewell Stroll through Luxembourg Gardens", note: "Watch miniature sailboats on the fountain pond." },
+        { time: "2:30 PM", title: "Transfer to Charles de Gaulle Airport", note: "Au revoir, Paris!" },
+      ],
+    },
+  ],
+};
 
-const EXPLORE_ACTIVITIES = [
-  { time: "9:00 AM", title: "Sightseeing & heritage tour", note: "Visit premier cultural monuments and viewpoints." },
-  { time: "1:00 PM", title: "Lunch at a top-rated local dining spot", note: "Savor authentic regional flavors." },
-  { time: "4:00 PM", title: "Local markets & experiences", note: "Browse artisan goods, take photos, and relax." },
-  { time: "7:30 PM", title: "Evening dinner & cafe hopping", note: "Unwind at a popular restaurant nearby." },
-];
+// Smart thematic day generator for any unlisted or custom destination
+function getThematicDay(destination, dayIndex, totalDays) {
+  const isFirst = dayIndex === 0;
+  const isLast = dayIndex === totalDays - 1 && totalDays > 1;
 
-const DEPARTURE_ACTIVITIES = [
-  { time: "9:30 AM", title: "Check-out & souvenir stop", note: "Pack bags, settle checkout, pick up last-minute keepsakes." },
-  { time: "12:00 PM", title: "Transfer to airport/station", note: "Depart with plenty of buffer time for transit." },
-];
+  if (isFirst) {
+    return {
+      label: `Arrival & Welcome to ${destination}`,
+      activities: [
+        { time: "11:30 AM", title: `Arrive in ${destination} & Hotel Check-in`, note: "Transfer from terminal, check-in, settle luggage, and recharge." },
+        { time: "3:00 PM", title: "Neighborhood Orientation & Promenade", note: `Gentle afternoon walking tour to discover nearby cafes and street architecture in ${destination}.` },
+        { time: "6:00 PM", title: "Golden Hour Panoramic Viewpoint", note: "Scenic vantage point to catch the sunset and capture initial memories." },
+        { time: "8:00 PM", title: "Welcome Dinner with Local Specialties", note: `Relaxed dining experience sampling famous regional delicacies of ${destination}.` },
+      ],
+    };
+  }
+
+  if (isLast) {
+    return {
+      label: `Farewell & Souvenirs in ${destination}`,
+      activities: [
+        { time: "9:30 AM", title: "Check-out & Artisan Souvenir Hunting", note: `Pick up authentic local crafts, spices, keepsakes, and gifts from ${destination}.` },
+        { time: "12:30 PM", title: "Farewell Brunch at a Cozy Heritage Cafe", note: "Leisurely final meal soaking in the relaxed atmosphere." },
+        { time: "3:00 PM", title: "Transfer to Airport / Train Station", note: "Depart with comfortable buffer time for return transit." },
+      ],
+    };
+  }
+
+  // Thematic middle days based on day index
+  const themes = [
+    {
+      label: `Signature Heritage & Iconic Landmarks of ${destination}`,
+      activities: [
+        { time: "8:30 AM", title: `Morning Tour of Top ${destination} Monument`, note: "Beat the midday crowds at the premier historic monument." },
+        { time: "12:30 PM", title: "Authentic Regional Lunch at Local Favorite", note: "Savor time-honored recipes recommended by locals." },
+        { time: "3:00 PM", title: "Museum, Art Gallery & Public Square", note: "Explore curated art exhibits, sculptures, and pedestrian plazas." },
+        { time: "6:30 PM", title: "Sunset River / Clifftop Walk & Evening Dining", note: "Scenic golden hour followed by vibrant atmospheric dining." },
+      ],
+    },
+    {
+      label: `Flavors, Food Markets & Artisan Crafts in ${destination}`,
+      activities: [
+        { time: "9:00 AM", title: `Historic Central Market & Street Food Trail`, note: "Bustling stalls filled with fresh produce, regional delicacies, and aromas." },
+        { time: "12:00 PM", title: "Culinary Tasting Session & Sweet Treats", note: "Handcrafted pastries, artisanal tea/coffee, and regional street specialties." },
+        { time: "2:30 PM", title: "Craftsmen & Independent Boutiques Quarter", note: "Watch local artisans at work and browse handmade jewelry and textiles." },
+        { time: "7:00 PM", title: "Rooftop Lounge & Signature Dinner", note: "Panoramic evening skyline views paired with chef's tasting menu." },
+      ],
+    },
+    {
+      label: `Nature Escapes & Scenic Corridors around ${destination}`,
+      activities: [
+        { time: "8:30 AM", title: "Scenic Countryside / Coastal Excursion", note: `Short picturesque drive to the natural reserves surrounding ${destination}.` },
+        { time: "11:30 AM", title: "Nature Trail, Lake or Botanical Sanctuary", note: "Rejuvenating walk amidst fresh air, greenery, and panoramic nature views." },
+        { time: "1:30 PM", title: "Rustic Farm-to-Table Lunch", note: "Fresh organic seasonal produce in a tranquil setting." },
+        { time: "5:30 PM", title: "Return to Town & Relaxing Spa / Tea Lounge", note: "Unwind tired muscles with a wellness treatment or artisanal tea." },
+      ],
+    },
+    {
+      label: `Hidden Alleys & Cultural Gems of ${destination}`,
+      activities: [
+        { time: "9:30 AM", title: "Off-the-Beaten-Path Quarter Walk", note: "Quiet cobblestone streets, colorful murals, and historic architecture away from crowds." },
+        { time: "12:30 PM", title: "Vintage Cafe & Bookshop Lunch", note: "Cozy atmosphere with artisanal salads, quiches, and espresso." },
+        { time: "3:30 PM", title: "Scenic Boat Ride or Heritage Tramway", note: "Classic transport experience viewing the town from a fresh angle." },
+        { time: "7:30 PM", title: "Evening Cultural Performance & Night Market", note: "Traditional music, folk performance, or illuminated night bazaar." },
+      ],
+    },
+  ];
+
+  const themeIdx = (dayIndex - 1) % themes.length;
+  return themes[themeIdx];
+}
 
 export function buildFallbackItinerary(trip = {}) {
-  const destination = trip.destination || "your destination";
+  const rawDest = trip.destination || "your destination";
+  const normDest = normalizeDestinationName(rawDest);
   const checkIn = trip.checkIn || trip.startDate;
   const checkOut = trip.checkOut || trip.endDate;
 
@@ -393,25 +827,47 @@ export function buildFallbackItinerary(trip = {}) {
   const nights = diffDays > 0 ? diffDays : 3;
   const totalDays = nights + 1;
 
+  // Check if we have an authentic curated plan for this destination
+  let curatedList = null;
+  for (const [key, plan] of Object.entries(CURATED_DESTINATION_PLANS)) {
+    if (normDest.includes(key) || key.includes(normDest)) {
+      curatedList = plan;
+      break;
+    }
+  }
+
   return {
-    id: `fallback-${Date.now()}`,
-    destination,
+    id: `plan-${normDest}-${Date.now()}`,
+    destination: rawDest,
     durationDays: totalDays,
     days: Array.from({ length: totalDays }, (_, i) => {
       const date = new Date(start.getTime() + i * 86400000);
-      const isFirst = i === 0;
-      const isLast = i === totalDays - 1 && totalDays > 1;
-      const source = isFirst ? ARRIVAL_ACTIVITIES : isLast ? DEPARTURE_ACTIVITIES : EXPLORE_ACTIVITIES;
+      let dayData;
+
+      if (curatedList && curatedList.length > 0) {
+        // Use curated schedule if available
+        if (i === totalDays - 1 && totalDays > 1) {
+          // Last day is the departure template
+          dayData = curatedList[curatedList.length - 1];
+        } else {
+          // Cycle through intermediate curated days
+          const curIdx = i % (curatedList.length - 1);
+          dayData = curatedList[curIdx];
+        }
+      } else {
+        // Fallback to high-quality dynamic thematic builder
+        dayData = getThematicDay(rawDest, i, totalDays);
+      }
 
       return {
         id: `day-${i + 1}`,
         index: i + 1,
         dayNumber: i + 1,
-        label: isFirst ? "Arrival & check-in" : isLast ? "Departure & farewell" : `Explore ${destination}`,
-        title: isFirst ? "Arrival & check-in" : isLast ? "Departure & farewell" : `Explore ${destination}`,
+        label: dayData.label || `Day ${i + 1} in ${rawDest}`,
+        title: dayData.label || `Day ${i + 1} in ${rawDest}`,
         dateLabel: date.toLocaleDateString("en-IN", { weekday: "long", day: "2-digit", month: "short" }),
         date: date.toISOString().split("T")[0],
-        activities: source.map((a, j) => ({
+        activities: (dayData.activities || []).map((a, j) => ({
           id: `day-${i + 1}-act-${j + 1}`,
           ...a,
         })),
@@ -432,10 +888,6 @@ export function itineraryToRouteStops(itinerary, rawDestination = "", overrideCe
 
   const stops = [];
   let stopCounter = 1;
-
-  // Track previous coordinates to ensure progressive route flow
-  let lastLat = center.lat;
-  let lastLng = center.lng;
 
   itinerary.days.forEach((day, dayIdx) => {
     const dayActivities =
@@ -471,8 +923,6 @@ export function itineraryToRouteStops(itinerary, rawDestination = "", overrideCe
         lng = center.lng + Math.cos(dayDirection) * stepOffset;
       }
 
-      lastLat = lat;
-      lastLng = lng;
 
       stops.push({
         id: act.id || `stop-${day.id}-${actIdx}`,

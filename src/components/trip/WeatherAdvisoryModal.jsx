@@ -8,7 +8,9 @@ import {
   CheckCircle2,
   RefreshCw,
   Thermometer,
+  Mountain,
 } from "lucide-react";
+
 
 export default function WeatherAdvisoryModal({
   isOpen,

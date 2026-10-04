@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useMemo } from "react";
+import { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import {
@@ -108,7 +108,7 @@ export default function RouteMapCanvas({ stops = [], destination = "", centerCoo
   }, [userLocation, stops]);
 
   // Helper to recenter map view on the current itinerary stops
-  const recenterOnRoute = () => {
+  const recenterOnRoute = useCallback(() => {
     const map = mapInstanceRef.current;
     if (!map) return;
     const targetStops = filteredStops.length > 0 ? filteredStops : stops;
@@ -130,7 +130,7 @@ export default function RouteMapCanvas({ stops = [], destination = "", centerCoo
         map.fitBounds(bounds, { padding: [50, 50], maxZoom: 14 });
       }
     }
-  };
+  }, [filteredStops, stops, centerCoords]);
 
   const focusUserLocation = () => {
     if (userLocation && mapInstanceRef.current) {
@@ -191,7 +191,7 @@ export default function RouteMapCanvas({ stops = [], destination = "", centerCoo
         mapInstanceRef.current = null;
       }
     };
-  }, []);
+  }, [recenterOnRoute, activeLayer, centerCoords, stops]);
 
   // Update map size whenever mode or tab becomes interactive
   useEffect(() => {
@@ -202,7 +202,7 @@ export default function RouteMapCanvas({ stops = [], destination = "", centerCoo
       }, 150);
       return () => clearTimeout(timer);
     }
-  }, [viewMode, selectedDay]);
+  }, [viewMode, selectedDay, recenterOnRoute]);
 
   // Update map tiles when layer changes
   useEffect(() => {

@@ -1,4 +1,5 @@
-import { MapPin, Navigation, Clock } from "lucide-react";
+import { Navigation, Clock } from "lucide-react";
+
 
 export default function RouteStopList({ stops = [] }) {
   if (!stops.length) {

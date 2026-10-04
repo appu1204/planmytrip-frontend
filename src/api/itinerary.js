@@ -1,57 +1,97 @@
 import client from "./client";
 
-// client interceptor already unwraps axios responses (response.data?.data ?? response.data).
-// Helper to safely extract payload without returning undefined if .data is not a property.
-const unwrap = (res) => (res && typeof res === "object" && "data" in res && res.data !== undefined ? res.data : res);
+async function requestWithFallback(primaryFn, fallbackFn) {
+  try {
+    return await primaryFn();
+  } catch (err) {
+    if (err?.statusCode === 404 && fallbackFn) {
+      return await fallbackFn();
+    }
+    throw err;
+  }
+}
 
-// POST /itineraries/generate — AI Trip Planner screen: generate a plan BEFORE a trip exists yet (no tripId).
+// POST /api/trip/itineraries/generate — AI Trip Planner screen: generate a plan BEFORE a trip exists yet
 export const generateStandaloneItinerary = (payload) =>
-  client.post("/itineraries/generate", payload).then(unwrap);
+  requestWithFallback(
+    () => client.post("/api/trip/itineraries/generate", payload),
+    () => client.post("/itineraries/generate", payload)
+  );
 
-// POST /trips/:tripId/itinerary/generate — generate a plan for a trip that's already been created.
+// POST /api/trip/trips/:tripId/itinerary/generate — generate a plan for an existing trip
 export const generateItinerary = (tripId, payload) =>
-  client.post(`/trips/${tripId}/itinerary/generate`, payload).then(unwrap);
+  requestWithFallback(
+    () => client.post(`/api/trip/trips/${tripId}/itinerary/generate`, payload),
+    () => client.post(`/trips/${tripId}/itinerary/generate`, payload)
+  );
 
-// GET /trips/:tripId/itinerary — fetch the saved plan (days, activities, notes) for the itinerary builder screen.
+// GET /api/trip/trips/:tripId/itinerary — fetch the saved plan
 export const getItinerary = (tripId) =>
-  client.get(`/trips/${tripId}/itinerary`).then(unwrap);
+  requestWithFallback(
+    () => client.get(`/api/trip/trips/${tripId}/itinerary`),
+    () => client.get(`/trips/${tripId}/itinerary`)
+  );
 
-// PUT /trips/:tripId/itinerary — persist the whole plan after the user edits it (used by "Save to my trip").
+// PUT /api/trip/trips/:tripId/itinerary — persist the whole plan
 export const saveItinerary = (tripId, itinerary) =>
-  client.put(`/trips/${tripId}/itinerary`, itinerary).then(unwrap);
+  requestWithFallback(
+    () => client.put(`/api/trip/trips/${tripId}/itinerary`, itinerary),
+    () => client.put(`/trips/${tripId}/itinerary`, itinerary)
+  );
 
-// POST /trips/:tripId/itinerary/regenerate — re-run AI generation, optionally with tweaked preferences.
+// POST /api/trip/trips/:tripId/itinerary/regenerate — re-run AI generation
 export const regenerateItinerary = (tripId, payload) =>
-  client.post(`/trips/${tripId}/itinerary/regenerate`, payload).then(unwrap);
+  requestWithFallback(
+    () => client.post(`/api/trip/trips/${tripId}/itinerary/regenerate`, payload),
+    () => client.post(`/trips/${tripId}/itinerary/regenerate`, payload)
+  );
 
-// POST /trips/:tripId/itinerary/days — add a new empty day to the itinerary (the "+ Add day" button).
+// POST /api/trip/trips/:tripId/itinerary/days — add a new day
 export const addItineraryDay = (tripId, day) =>
-  client.post(`/trips/${tripId}/itinerary/days`, day).then(unwrap);
+  requestWithFallback(
+    () => client.post(`/api/trip/trips/${tripId}/itinerary/days`, day),
+    () => client.post(`/trips/${tripId}/itinerary/days`, day)
+  );
 
-// POST /trips/:tripId/itinerary/days/:dayId/activities — add one activity/stop to a specific day.
+// POST /api/trip/trips/:tripId/itinerary/days/:dayId/activities — add an activity to a day
 export const addItineraryActivity = (tripId, dayId, activity) =>
-  client
-    .post(`/trips/${tripId}/itinerary/days/${dayId}/activities`, activity)
-    .then(unwrap);
+  requestWithFallback(
+    () => client.post(`/api/trip/trips/${tripId}/itinerary/days/${dayId}/activities`, activity),
+    () => client.post(`/trips/${tripId}/itinerary/days/${dayId}/activities`, activity)
+  );
 
-// DELETE /trips/:tripId/itinerary/days/:dayId/activities/:activityId — remove one activity from a day.
+// DELETE /api/trip/trips/:tripId/itinerary/days/:dayId/activities/:activityId — remove an activity
 export const deleteItineraryActivity = (tripId, dayId, activityId) =>
-  client
-    .delete(`/trips/${tripId}/itinerary/days/${dayId}/activities/${activityId}`)
-    .then(unwrap);
+  requestWithFallback(
+    () => client.delete(`/api/trip/trips/${tripId}/itinerary/days/${dayId}/activities/${activityId}`),
+    () => client.delete(`/trips/${tripId}/itinerary/days/${dayId}/activities/${activityId}`)
+  );
 
-// PATCH /trips/:tripId/notes — save the free-text "Trip notes" box shown next to the day timeline.
+// PATCH /api/trip/trips/:tripId/notes — save trip notes
 export const updateTripNotes = (tripId, notes) =>
-  client.patch(`/trips/${tripId}/notes`, { notes }).then(unwrap);
+  requestWithFallback(
+    () => client.patch(`/api/trip/trips/${tripId}/notes`, { notes }),
+    () => client.patch(`/trips/${tripId}/notes`, { notes })
+  );
 
-// GET /trips/:tripId/route — stop-by-stop route (used by Map view); usually derived server-side from the itinerary.
+// GET /api/trip/trips/:tripId/route — stop-by-stop route for map view
 export const getTripRoute = (tripId) =>
-  client.get(`/trips/${tripId}/route`).then(unwrap);
+  requestWithFallback(
+    () => client.get(`/api/trip/trips/${tripId}/route`),
+    () => client.get(`/trips/${tripId}/route`)
+  );
 
-// POST /trips/:tripId/route/optimize — ask the backend to reorder/optimize stops for shortest travel time.
+// POST /api/trip/trips/:tripId/route/optimize — ask the backend to optimize stops
 export const optimizeTripRoute = (tripId) =>
-  client.post(`/trips/${tripId}/route/optimize`).then(unwrap);
+  requestWithFallback(
+    () => client.post(`/api/trip/trips/${tripId}/route/optimize`),
+    () => client.post(`/trips/${tripId}/route/optimize`)
+  );
 
-// GET /trips/:tripId/budget — the cost-breakdown shown on the itinerary "Budget" tab (stays/activities/transport).
+// GET /api/trip/trips/:tripId/budget — cost breakdown
 export const getTripBudget = (tripId) =>
-  client.get(`/trips/${tripId}/budget`).then(unwrap);
+  requestWithFallback(
+    () => client.get(`/api/trip/trips/${tripId}/budget`),
+    () => client.get(`/trips/${tripId}/budget`)
+  );
+

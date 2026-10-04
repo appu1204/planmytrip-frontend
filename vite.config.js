@@ -4,7 +4,16 @@ import react from "@vitejs/plugin-react";
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
+  server: {
+    host: true,
+    port: 5173,
+  },
+  resolve: {
+    preserveSymlinks: true,
+  },
   build: {
+    outDir: "dist",
+    emptyOutDir: true,
     chunkSizeWarningLimit: 800,
     rollupOptions: {
       output: {

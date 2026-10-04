@@ -32,12 +32,14 @@ export default function Navbar({
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  const initials = (user?.fullName || "PlanMyTrip Demo")
+  const userName = user?.fullName || user?.name || user?.email?.split("@")[0] || "User";
+  const initials = userName
     .split(" ")
     .map((p) => p[0])
     .slice(0, 2)
     .join("")
     .toUpperCase();
+
 
   const isHeaderTransparent = transparent && !scrolled;
 
