@@ -18,12 +18,17 @@ import {
   ChevronLeft,
   ChevronRight,
   Info,
+  ShieldCheck,
+  AlertTriangle,
+  AlertOctagon,
 } from "lucide-react";
 import Navbar from "../../components/layout/Navbar";
 import Counter from "../../components/trip/Counter";
 import PreferenceChip from "../../components/planner/PreferenceChip";
 import PlanDayPreview from "../../components/planner/PlanDayPreview";
 import RouteMapCanvas from "../../components/trip/RouteMapCanvas";
+import WeatherAdvisoryModal from "../../components/trip/WeatherAdvisoryModal";
+import { fetchDestinationWeather, evaluateWeatherSafety } from "../../utils/weatherAdvisor";
 import { useAuth } from "../../context/AuthContext";
 import { getPersona } from "../../theme/personas";
 import { generateStandaloneItinerary, saveItinerary } from "../../api/itinerary";
@@ -91,7 +96,7 @@ const PREFERENCE_OPTIONS = [
   { id: "Beaches", label: "Beaches", icon: "🏖️" },
   { id: "Backwaters", label: "Backwaters", icon: "🌿" },
   { id: "Trekking", label: "Mountains", icon: "🏔️" },
-  { id: "Local food", label: "Dining", icon: "🍜" },
+  { id: "Dining", label: "Dining", icon: "🍜" },
   { id: "Museums", label: "Heritage", icon: "🏛️" },
   { id: "Wildlife", label: "Wildlife", icon: "🐅" },
   { id: "Nightlife", label: "Nightlife", icon: "🍸" },
@@ -128,12 +133,18 @@ export default function AIPlanner() {
     children: state?.children || 0,
   });
 
-  const [preferences, setPreferences] = useState(["Beaches", "Local food"]);
+  const [preferences, setPreferences] = useState(["Beaches", "Photography"]);
   const [plan, setPlan] = useState(null);
   const [generating, setGenerating] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [copiedLink, setCopiedLink] = useState(false);
+  const [activeDayNumber, setActiveDayNumber] = useState(1);
+
+  // Real-time Weather & Safety Advisory State
+  const [weatherAdvisory, setWeatherAdvisory] = useState(null);
+  const [weatherLoading, setWeatherLoading] = useState(false);
+  const [showWeatherModal, setShowWeatherModal] = useState(false);
 
   // View mode for results: "combined" (map + timeline), "timeline", "map"
   const [viewMode, setViewMode] = useState("combined");
@@ -149,9 +160,6 @@ export default function AIPlanner() {
   }, []);
 
   const set = (field) => (value) => setForm((f) => ({ ...f, [field]: value }));
-
-  const togglePreference = (id) =>
-    setPreferences((prev) => (prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id]));
 
   // Automatically calculate trip duration
   const tripDuration = useMemo(() => {
@@ -180,7 +188,7 @@ export default function AIPlanner() {
 
   // Geographical center coordinate for the destination
   const destinationCenter = useMemo(() => {
-    return getDestinationCenter(form.destination || "goa");
+    return getDestinationCenter(form.destination || "new delhi");
   }, [form.destination]);
 
   const dayTag = (index, total) => {
@@ -190,61 +198,143 @@ export default function AIPlanner() {
     return preferences[0] ? `${preferences[0]}` : "Highlights";
   };
 
-  const validateForm = () => {
-    if (!form.destination.trim()) {
+  const validateForm = (targetForm = form) => {
+    if (!targetForm.destination.trim()) {
       setError("Please enter or select a travel destination.");
       return false;
     }
-    if (!form.checkIn || !form.checkOut) {
+    if (!targetForm.checkIn || !targetForm.checkOut) {
       setError("Please select both check-in and check-out dates.");
       return false;
     }
-    if (new Date(form.checkOut) <= new Date(form.checkIn)) {
+    if (new Date(targetForm.checkOut) <= new Date(targetForm.checkIn)) {
       setError("Check-out date must be after check-in date.");
       return false;
     }
     return true;
   };
 
-  const generate = async () => {
+  // Dynamic Generator: Runs standalone backend AI endpoint or rich responsive fallback
+  const generateWith = async (
+    targetForm = form,
+    targetStyle = selectedStyle,
+    targetPrefs = preferences
+  ) => {
     setError("");
-    if (!validateForm()) return;
+    if (!validateForm(targetForm)) return;
     setGenerating(true);
+    const payload = {
+      destination: targetForm.destination,
+      checkIn: targetForm.checkIn,
+      checkOut: targetForm.checkOut,
+      budget: targetForm.budget,
+      adults: targetForm.adults,
+      children: targetForm.children,
+      preferences: targetPrefs,
+      persona: targetStyle,
+    };
     try {
-      const result = await generateStandaloneItinerary({
-        destination: form.destination,
-        checkIn: form.checkIn,
-        checkOut: form.checkOut,
-        budget: form.budget,
-        adults: form.adults,
-        children: form.children,
-        preferences,
-        persona: selectedStyle,
-      });
+      const result = await generateStandaloneItinerary(payload);
       if (result && result.days && result.days.length > 0) {
         setPlan(result);
       } else {
-        setPlan(buildFallbackItinerary(form));
+        setPlan(buildFallbackItinerary(payload));
       }
     } catch {
-      setPlan(buildFallbackItinerary(form));
+      setPlan(buildFallbackItinerary(payload));
     } finally {
       setGenerating(false);
-      // Smooth scroll to view area on mobile
-      if (window.innerWidth < 1024) {
-        const resultsEl = document.getElementById("itinerary-canvas");
-        resultsEl?.scrollIntoView({ behavior: "smooth" });
-      }
+      setActiveDayNumber(1);
     }
   };
 
-  // Pre-load default initial itinerary on first visit
+  const generate = () => generateWith(form, selectedStyle, preferences);
+
+  // Pre-load initial itinerary on first visit
   useEffect(() => {
     if (!plan && form.destination) {
-      setPlan(buildFallbackItinerary(form));
+      generateWith(form, selectedStyle, preferences);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Live Weather & Safety Advisory for Selected Destination
+  useEffect(() => {
+    let isMounted = true;
+    async function loadWeather() {
+      if (!form.destination) return;
+      setWeatherLoading(true);
+      try {
+        const raw = await fetchDestinationWeather(form.destination);
+        const advisory = evaluateWeatherSafety(raw, {
+          startDate: form.checkIn,
+          endDate: form.checkOut,
+        });
+        if (isMounted) {
+          setWeatherAdvisory(advisory);
+        }
+      } catch (err) {
+        console.warn("Weather advisory fetch error:", err);
+      } finally {
+        if (isMounted) setWeatherLoading(false);
+      }
+    }
+    loadWeather();
+    return () => {
+      isMounted = false;
+    };
+  }, [form.destination, form.checkIn, form.checkOut]);
+
+  // Quick Action Handlers for Instant Interactivity
+  const handleSelectQuickDest = (q) => {
+    const nextForm = { ...form, destination: q };
+    setForm(nextForm);
+    generateWith(nextForm, selectedStyle, preferences);
+  };
+
+  const handleSelectStyle = (key) => {
+    setSelectedStyle(key);
+    generateWith(form, key, preferences);
+  };
+
+  const handleTogglePreference = (id) => {
+    const isDining = id === "Dining" || id === "Local food";
+    let next;
+    if (isDining) {
+      const hasDining = preferences.includes("Dining") || preferences.includes("Local food");
+      if (hasDining) {
+        next = preferences.filter((p) => p !== "Dining" && p !== "Local food");
+      } else {
+        next = [...preferences, "Dining"];
+      }
+    } else {
+      next = preferences.includes(id)
+        ? preferences.filter((p) => p !== id)
+        : [...preferences, id];
+    }
+    setPreferences(next);
+    generateWith(form, selectedStyle, next);
+  };
+
+  const handleBudgetChange = (budgetVal) => {
+    const nextForm = { ...form, budget: budgetVal };
+    setForm(nextForm);
+    generateWith(nextForm, selectedStyle, preferences);
+  };
+
+  const handleDateChange = (field, val) => {
+    const nextForm = { ...form, [field]: val };
+    setForm(nextForm);
+    if (nextForm.checkIn && nextForm.checkOut && new Date(nextForm.checkOut) > new Date(nextForm.checkIn)) {
+      generateWith(nextForm, selectedStyle, preferences);
+    }
+  };
+
+  const handleTravelerChange = (field, val) => {
+    const nextForm = { ...form, [field]: val };
+    setForm(nextForm);
+    generateWith(nextForm, selectedStyle, preferences);
+  };
 
   const saveToTrip = async () => {
     if (!plan) return;
@@ -419,8 +509,8 @@ export default function AIPlanner() {
         )}
 
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-[380px_1fr] items-start">
-          {/* LEFT COLUMN: Trip Configuration Form */}
-          <div className="sticky top-20 rounded-3xl border border-slate-200 bg-white p-5 sm:p-6 shadow-sm">
+          {/* LEFT COLUMN: Trip Configuration Form (With Clean Independent Scrolling & Accessible Action Buttons) */}
+          <div className="lg:sticky lg:top-24 lg:max-h-[calc(100vh-6.5rem)] lg:overflow-y-auto rounded-3xl border border-slate-200 bg-white p-5 sm:p-6 shadow-sm scrollbar-thin">
             <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-5">
               <div>
                 <h2 className="font-display text-lg font-bold text-slate-900">Trip Details</h2>
@@ -448,23 +538,31 @@ export default function AIPlanner() {
                   <input
                     type="text"
                     required
-                    placeholder="e.g. Goa, Kerala, Kyoto, Paris"
+                    placeholder="e.g. New Delhi, Goa, Kerala, Kyoto, Paris"
                     value={form.destination}
-                    onChange={(e) => set("destination")(e.target.value)}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      set("destination")(val);
+                    }}
+                    onBlur={() => {
+                      if (form.destination && form.destination.trim().length >= 3) {
+                        generate();
+                      }
+                    }}
                     className="w-full rounded-xl border border-slate-300 pl-10 pr-4 py-2.5 text-xs font-semibold text-slate-900 placeholder:text-slate-400 focus:border-emerald-600 focus:outline-none focus:ring-1 focus:ring-emerald-600 shadow-sm"
                   />
                 </div>
 
-                {/* Popular Destinations Quick Select */}
+                {/* Popular Destinations Quick Select (Instant Interactive Generation) */}
                 <div className="mt-2.5 flex flex-wrap gap-1.5">
                   {QUICK_DESTINATIONS.map((q) => (
                     <button
                       key={q}
                       type="button"
-                      onClick={() => set("destination")(q)}
-                      className={`rounded-lg px-2.5 py-1 text-[11px] font-medium transition ${
+                      onClick={() => handleSelectQuickDest(q)}
+                      className={`rounded-lg px-2.5 py-1 text-[11px] font-medium transition cursor-pointer ${
                         form.destination === q
-                          ? "bg-slate-900 text-white font-semibold"
+                          ? "bg-slate-900 text-white font-semibold shadow-sm"
                           : "bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900"
                       }`}
                     >
@@ -474,7 +572,7 @@ export default function AIPlanner() {
                 </div>
               </div>
 
-              {/* 2. Travel Style */}
+              {/* 2. Travel Style (Instant Interactive Update) */}
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-2">
                   Travel Style
@@ -484,10 +582,10 @@ export default function AIPlanner() {
                     <button
                       key={st.key}
                       type="button"
-                      onClick={() => setSelectedStyle(st.key)}
-                      className={`flex flex-col items-center justify-center p-2 rounded-xl text-center border text-xs font-semibold transition-all ${
+                      onClick={() => handleSelectStyle(st.key)}
+                      className={`flex flex-col items-center justify-center p-2 rounded-xl text-center border text-xs font-semibold transition-all cursor-pointer ${
                         selectedStyle === st.key
-                          ? "border-emerald-600 bg-emerald-50 text-emerald-950 ring-1 ring-emerald-600"
+                          ? "border-emerald-600 bg-emerald-50 text-emerald-950 ring-1 ring-emerald-600 shadow-sm"
                           : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"
                       }`}
                     >
@@ -517,7 +615,7 @@ export default function AIPlanner() {
                         type="date"
                         required
                         value={form.checkIn}
-                        onChange={(e) => set("checkIn")(e.target.value)}
+                        onChange={(e) => handleDateChange("checkIn", e.target.value)}
                         className="w-full rounded-xl border border-slate-300 pl-8 pr-2 py-2 text-xs font-semibold text-slate-800 focus:border-emerald-600 focus:outline-none"
                       />
                     </div>
@@ -530,7 +628,7 @@ export default function AIPlanner() {
                         type="date"
                         required
                         value={form.checkOut}
-                        onChange={(e) => set("checkOut")(e.target.value)}
+                        onChange={(e) => handleDateChange("checkOut", e.target.value)}
                         className="w-full rounded-xl border border-slate-300 pl-8 pr-2 py-2 text-xs font-semibold text-slate-800 focus:border-emerald-600 focus:outline-none"
                       />
                     </div>
@@ -560,7 +658,7 @@ export default function AIPlanner() {
                   max={350000}
                   step={5000}
                   value={form.budget}
-                  onChange={(e) => set("budget")(Number(e.target.value))}
+                  onChange={(e) => handleBudgetChange(Number(e.target.value))}
                   className="h-2 w-full cursor-pointer appearance-none rounded-full bg-slate-200 accent-emerald-600"
                 />
 
@@ -569,8 +667,8 @@ export default function AIPlanner() {
                     <button
                       key={tier.label}
                       type="button"
-                      onClick={() => set("budget")(tier.value)}
-                      className={`rounded-xl border py-1.5 text-center text-[11px] font-semibold transition ${
+                      onClick={() => handleBudgetChange(tier.value)}
+                      className={`rounded-xl border py-1.5 text-center text-[11px] font-semibold transition cursor-pointer ${
                         Math.abs(form.budget - tier.value) < 15000
                           ? "border-emerald-600 bg-emerald-50 text-emerald-950 font-bold"
                           : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
@@ -584,14 +682,26 @@ export default function AIPlanner() {
 
               {/* 5. Travelers Counters */}
               <div className="space-y-2">
-                <Counter label="Adults" sublabel="Ages 18+" value={form.adults} onChange={set("adults")} min={1} />
-                <Counter label="Children" sublabel="Ages 2-17" value={form.children} onChange={set("children")} min={0} />
+                <Counter
+                  label="Adults"
+                  sublabel="Ages 18+"
+                  value={form.adults}
+                  onChange={(val) => handleTravelerChange("adults", val)}
+                  min={1}
+                />
+                <Counter
+                  label="Children"
+                  sublabel="Ages 2-17"
+                  value={form.children}
+                  onChange={(val) => handleTravelerChange("children", val)}
+                  min={0}
+                />
                 <div className="text-[11px] font-medium text-slate-500 flex items-center gap-1.5 pt-0.5">
                   <Users className="h-3.5 w-3.5 text-slate-400" /> {travellersLabel}
                 </div>
               </div>
 
-              {/* 6. Travel Interests & Experiences (Clean Flex Wrap Without Truncation) */}
+              {/* 6. Travel Interests & Experiences (Instant Responsive Filter) */}
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-2">
                   Travel Interests & Sights
@@ -600,20 +710,24 @@ export default function AIPlanner() {
                   {PREFERENCE_OPTIONS.map((p) => (
                     <PreferenceChip
                       key={p.id}
+                      id={p.id}
                       label={p.label}
                       icon={p.icon}
-                      active={preferences.includes(p.id)}
-                      onToggle={togglePreference}
+                      active={
+                        preferences.includes(p.id) ||
+                        (p.id === "Dining" && preferences.includes("Local food"))
+                      }
+                      onToggle={handleTogglePreference}
                     />
                   ))}
                 </div>
               </div>
 
-              {/* Main Submit Button */}
+              {/* Main Submit Button (Always in view or reachable) */}
               <button
                 type="submit"
                 disabled={generating}
-                className="w-full rounded-2xl bg-emerald-700 hover:bg-emerald-600 text-white font-bold p-3.5 text-center shadow-md transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2 text-sm"
+                className="w-full rounded-2xl bg-emerald-700 hover:bg-emerald-600 text-white font-bold p-3.5 text-center shadow-md transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2 text-sm cursor-pointer"
               >
                 {generating ? (
                   <>
@@ -644,6 +758,11 @@ export default function AIPlanner() {
                       <span className="text-xs text-slate-500 font-medium">
                         {tripDuration.days} Days / {tripDuration.nights} Nights
                       </span>
+                      {generating && (
+                        <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-100/60 px-2 py-0.5 rounded-full animate-pulse">
+                          <RefreshCw className="h-3 w-3 animate-spin" /> Updating Plan...
+                        </span>
+                      )}
                     </div>
 
                     <h2 className="font-display text-xl sm:text-2xl font-bold text-slate-900">
@@ -658,6 +777,33 @@ export default function AIPlanner() {
                       <span className="flex items-center gap-1.5">
                         <MapPin className="h-3.5 w-3.5 text-slate-400" /> {totalActivitiesCount} Planned Stops
                       </span>
+                      {weatherAdvisory && (
+                        <>
+                          <span>•</span>
+                          <button
+                            type="button"
+                            onClick={() => setShowWeatherModal(true)}
+                            className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-bold transition hover:opacity-90 cursor-pointer ${
+                              weatherAdvisory.status === "DANGER"
+                                ? "bg-rose-100 text-rose-800 border border-rose-300"
+                                : weatherAdvisory.status === "CAUTION"
+                                ? "bg-amber-100 text-amber-800 border border-amber-300"
+                                : "bg-emerald-100 text-emerald-800 border border-emerald-300"
+                            }`}
+                          >
+                            <span>{weatherAdvisory.metrics?.conditionIcon || "🌤️"}</span>
+                            <span>{weatherAdvisory.metrics?.currentTemp ? `${weatherAdvisory.metrics.currentTemp}°C` : ""}</span>
+                            <span>•</span>
+                            <span className="underline decoration-dotted">
+                              {weatherAdvisory.status === "DANGER"
+                                ? "Hazard Warning"
+                                : weatherAdvisory.status === "CAUTION"
+                                ? "Weather Advisory"
+                                : "Weather & Safety: Safe"}
+                            </span>
+                          </button>
+                        </>
+                      )}
                     </div>
                   </div>
 
@@ -699,8 +845,19 @@ export default function AIPlanner() {
                       </button>
                     </div>
 
-                    {/* Action Buttons: Share, Print, Save */}
+                    {/* Action Buttons: Share, Print, Save, Weather */}
                     <div className="flex items-center gap-1.5">
+                      {weatherAdvisory && (
+                        <button
+                          type="button"
+                          onClick={() => setShowWeatherModal(true)}
+                          title="View Weather & Safety Advisory"
+                          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold transition cursor-pointer"
+                        >
+                          <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
+                          <span className="hidden sm:inline">Weather Safety</span>
+                        </button>
+                      )}
                       <button
                         type="button"
                         onClick={handleShare}
@@ -721,6 +878,79 @@ export default function AIPlanner() {
                   </div>
                 </div>
 
+                {/* Weather & Travel Safety Advisory Banner */}
+                {weatherAdvisory && (
+                  <div
+                    className={`mt-5 rounded-2xl border p-4 transition-all duration-300 ${
+                      weatherAdvisory.status === "DANGER"
+                        ? "border-rose-300 bg-gradient-to-r from-rose-50 to-orange-50/60"
+                        : weatherAdvisory.status === "CAUTION"
+                        ? "border-amber-300 bg-gradient-to-r from-amber-50 to-yellow-50/60"
+                        : "border-emerald-200 bg-gradient-to-r from-emerald-50/80 to-teal-50/40"
+                    }`}
+                  >
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div className="flex items-start gap-3">
+                        <div
+                          className={`mt-0.5 grid h-10 w-10 shrink-0 place-items-center rounded-xl shadow-sm ${
+                            weatherAdvisory.status === "DANGER"
+                              ? "bg-rose-600 text-white"
+                              : weatherAdvisory.status === "CAUTION"
+                              ? "bg-amber-500 text-white"
+                              : "bg-emerald-600 text-white"
+                          }`}
+                        >
+                          {weatherAdvisory.status === "DANGER" ? (
+                            <AlertOctagon className="h-5 w-5" />
+                          ) : weatherAdvisory.status === "CAUTION" ? (
+                            <AlertTriangle className="h-5 w-5" />
+                          ) : (
+                            <ShieldCheck className="h-5 w-5" />
+                          )}
+                        </div>
+                        <div>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span
+                              className={`rounded-full px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider ${
+                                weatherAdvisory.status === "DANGER"
+                                  ? "bg-rose-200/80 text-rose-900"
+                                  : weatherAdvisory.status === "CAUTION"
+                                  ? "bg-amber-200/80 text-amber-900"
+                                  : "bg-emerald-200/80 text-emerald-900"
+                              }`}
+                            >
+                              {weatherAdvisory.statusLabel || (weatherAdvisory.status === "SAFE" ? "Safe to Travel · Green Light" : "Travel Weather Advisory")}
+                            </span>
+                            <span className="text-xs font-semibold text-slate-700">
+                              {weatherAdvisory.metrics?.conditionIcon} {weatherAdvisory.metrics?.currentTemp}°C {weatherAdvisory.metrics?.conditionLabel} in {form.destination}
+                            </span>
+                          </div>
+                          <p className="mt-1 text-xs text-slate-600 line-clamp-2 leading-relaxed">
+                            {weatherAdvisory.professionalVerdict}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                        <button
+                          type="button"
+                          onClick={() => setShowWeatherModal(true)}
+                          className={`rounded-xl px-3.5 py-2 text-xs font-bold shadow-sm transition active:scale-95 cursor-pointer flex items-center gap-1.5 ${
+                            weatherAdvisory.status === "DANGER"
+                              ? "bg-rose-700 hover:bg-rose-800 text-white"
+                              : weatherAdvisory.status === "CAUTION"
+                              ? "bg-amber-600 hover:bg-amber-700 text-white"
+                              : "bg-emerald-700 hover:bg-emerald-800 text-white"
+                          }`}
+                        >
+                          <span>Safety Details & Pack Advice</span>
+                          <span>→</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* Interactive Leaflet Route Map Canvas (Visible in "combined" and "map" modes) */}
                 {(viewMode === "combined" || viewMode === "map") && (
                   <div className="mt-5 mb-6">
@@ -730,6 +960,11 @@ export default function AIPlanner() {
                         <h3 className="font-display text-sm font-bold text-slate-900">
                           Interactive Route & Stops Map
                         </h3>
+                        {activeDayNumber && (
+                          <span className="text-xs bg-slate-100 font-semibold px-2 py-0.5 rounded-md text-slate-700">
+                            Day {activeDayNumber} Stops
+                          </span>
+                        )}
                       </div>
                       <span className="text-[11px] text-slate-500 font-medium">
                         Click markers for details · Switch roadmap / satellite
@@ -741,6 +976,8 @@ export default function AIPlanner() {
                         stops={routeStops}
                         destination={form.destination}
                         centerCoords={destinationCenter}
+                        activeDayNumber={activeDayNumber}
+                        onSelectDay={(dayNum) => setActiveDayNumber(dayNum === "all" ? 1 : Number(dayNum))}
                       />
                     </div>
                   </div>
@@ -757,17 +994,26 @@ export default function AIPlanner() {
                         </h3>
                       </div>
                       <span className="text-[11px] text-slate-500">
-                        Click any day to expand or collapse stops
+                        Click any day to highlight stops on map
                       </span>
                     </div>
 
                     {plan.days?.map((day, idx) => (
-                      <PlanDayPreview
+                      <div
                         key={day.id || idx}
-                        day={day}
-                        tag={dayTag(day.index, plan.days.length)}
-                        defaultExpanded={true}
-                      />
+                        onClick={() => setActiveDayNumber(day.index)}
+                        className={`rounded-2xl transition-all cursor-pointer ${
+                          activeDayNumber === day.index
+                            ? "ring-2 ring-emerald-600/70 shadow-sm"
+                            : "hover:border-slate-300"
+                        }`}
+                      >
+                        <PlanDayPreview
+                          day={day}
+                          tag={dayTag(day.index, plan.days.length)}
+                          defaultExpanded={day.index === activeDayNumber || day.index === 1}
+                        />
+                      </div>
                     ))}
                   </div>
                 )}
@@ -799,6 +1045,28 @@ export default function AIPlanner() {
           </div>
         </div>
       </main>
+
+      {/* Weather Safety & Preparedness Advisory Modal */}
+      <WeatherAdvisoryModal
+        isOpen={showWeatherModal}
+        onClose={() => setShowWeatherModal(false)}
+        advisory={weatherAdvisory}
+        loading={weatherLoading}
+        onRefresh={async () => {
+          if (!form.destination) return;
+          setWeatherLoading(true);
+          try {
+            const raw = await fetchDestinationWeather(form.destination);
+            const advisory = evaluateWeatherSafety(raw, {
+              startDate: form.checkIn,
+              endDate: form.checkOut,
+            });
+            setWeatherAdvisory(advisory);
+          } finally {
+            setWeatherLoading(false);
+          }
+        }}
+      />
     </div>
   );
 }

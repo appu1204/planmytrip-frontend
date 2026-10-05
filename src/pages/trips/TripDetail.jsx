@@ -622,6 +622,15 @@ export default function TripDetail() {
                   stops={routeStops}
                   destination={trip.destination}
                   centerCoords={weatherData?.coords}
+                  activeDayNumber={activeDay?.index || activeDay?.dayNumber || 1}
+                  onSelectDay={(dayNum) => {
+                    if (dayNum !== "all") {
+                      const matchDay = effectiveItinerary?.days?.find(
+                        (d) => Number(d.index || d.dayNumber) === Number(dayNum)
+                      );
+                      if (matchDay) setActiveDayId(matchDay.id);
+                    }
+                  }}
                 />
               </div>
             </div>

@@ -1,15 +1,15 @@
 import { Check } from "lucide-react";
 
-export default function PreferenceChip({ label, icon, active, onToggle }) {
+export default function PreferenceChip({ id, label, icon, active, onToggle }) {
   const displayLabel = typeof label === "object" ? label.label : label;
   const displayIcon = icon || (typeof label === "object" ? label.icon : null);
-  const value = typeof label === "object" ? (label.id || label.label) : label;
+  const value = id || (typeof label === "object" ? (label.id || label.label) : label);
 
   return (
     <button
       type="button"
-      onClick={() => onToggle(value)}
-      className={`group inline-flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-medium transition-all duration-200 select-none whitespace-nowrap active:scale-95 ${
+      onClick={() => onToggle?.(value)}
+      className={`group inline-flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-medium transition-all duration-200 select-none whitespace-nowrap active:scale-95 cursor-pointer ${
         active
           ? "border-emerald-600 bg-emerald-50 text-emerald-950 shadow-sm ring-1 ring-emerald-500 font-semibold"
           : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"

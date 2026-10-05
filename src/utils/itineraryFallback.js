@@ -185,74 +185,111 @@ const DESTINATION_CENTERS = {
 // Extensive Landmark & Place Dictionary for Itinerary Activities
 // Maps place names and keywords directly to their realistic GPS coordinates
 const SPECIFIC_PLACES = [
-  // Kerala Landmarks
-  { keywords: ["cochin airport", "cial", "nedumbassery"], lat: 10.1518, lng: 76.3930, name: "Cochin International Airport" },
-  { keywords: ["fort kochi", "mattancherry", "jew town", "chinese fishing"], lat: 9.9674, lng: 76.2454, name: "Fort Kochi & Harbor" },
-  { keywords: ["kochi", "cochin", "marine drive", "ernakulam"], lat: 9.9816, lng: 76.2750, name: "Kochi City & Marine Drive" },
-  { keywords: ["marari beach", "marari homestay", "marari"], lat: 9.6006, lng: 76.2990, name: "Marari Beach" },
-  { keywords: ["alleppey", "alappuzha", "backwaters", "houseboat"], lat: 9.4981, lng: 76.3388, name: "Alleppey Backwaters" },
-  { keywords: ["punnamada", "punnamada lake", "punnamada lake walk"], lat: 9.5200, lng: 76.3650, name: "Punnamada Lake" },
-  { keywords: ["shikara", "shikara boat", "vembanad"], lat: 9.5050, lng: 76.3500, name: "Vembanad Lake Shikara Cruise" },
-  { keywords: ["varkala beach", "papanasam beach", "varkala"], lat: 8.7379, lng: 76.7163, name: "Varkala Beach" },
-  { keywords: ["cliffside", "varkala cliff", "north cliff", "south cliff", "cliff"], lat: 8.7420, lng: 76.7080, name: "Varkala Cliff Promenade" },
-  { keywords: ["yoga", "morning yoga", "ocean yoga", "ocean"], lat: 8.7350, lng: 76.7120, name: "Oceanfront Coastal Point" },
-  { keywords: ["trivandrum", "thiruvananthapuram", "padmanabhaswamy"], lat: 8.5241, lng: 76.9366, name: "Thiruvananthapuram City" },
-  { keywords: ["kovalam", "lighthouse beach", "hawah beach"], lat: 8.4004, lng: 76.9787, name: "Kovalam Lighthouse Beach" },
-  { keywords: ["munnar", "tea garden", "tea plantation", "tea museum"], lat: 10.0889, lng: 77.0595, name: "Munnar Tea Hills" },
-  { keywords: ["mattupetty", "mattupetty dam", "echo point"], lat: 10.1064, lng: 77.1245, name: "Mattupetty Dam" },
-  { keywords: ["eravikulam", "anamudi", "nilgiri tahr"], lat: 10.2000, lng: 77.0600, name: "Eravikulam National Park" },
-  { keywords: ["thekkady", "periyar lake", "periyar wildlife", "spice garden"], lat: 9.6031, lng: 77.1615, name: "Periyar Wildlife Sanctuary" },
-  { keywords: ["wayanad", "edakkal", "banasura sagar", "chembra"], lat: 11.6854, lng: 76.1320, name: "Wayanad Hills" },
-  { keywords: ["kumarakom", "kumarakom bird"], lat: 9.6175, lng: 76.4301, name: "Kumarakom Sanctuary" },
-  { keywords: ["athirappilly", "athirapally", "waterfall"], lat: 10.2851, lng: 76.5698, name: "Athirappilly Waterfalls" },
+  // Kashmir Landmarks
+  { keywords: ["srinagar airport", "sxr airport", "sheikh ul-alam"], lat: 33.9871, lng: 74.7744, name: "Srinagar International Airport (SXR)", destination: "kashmir" },
+  { keywords: ["dal lake", "houseboat", "lake houseboat", "cedar houseboat"], lat: 34.1030, lng: 74.8720, name: "Dal Lake Houseboats & Ghats", destination: "kashmir" },
+  { keywords: ["shikara", "char chinar", "floating garden", "shikara ride"], lat: 34.0860, lng: 74.8350, name: "Dal Lake Shikara Ghat & Char Chinar", destination: "kashmir" },
+  { keywords: ["wazwan", "rogan josh", "kashmiri feast", "ahdoos"], lat: 34.0740, lng: 74.8140, name: "Boulevard Kashmiri Wazwan Dining", destination: "kashmir" },
+  { keywords: ["nishat bagh", "shalimar bagh", "mughal garden", "royal terrace"], lat: 34.1250, lng: 74.8785, name: "Nishat & Shalimar Mughal Gardens", destination: "kashmir" },
+  { keywords: ["hazratbal", "hazratbal dargah"], lat: 34.1278, lng: 74.8431, name: "Hazratbal Dargah Shrine", destination: "kashmir" },
+  { keywords: ["jamia masjid", "old srinagar", "deodar timber"], lat: 34.0994, lng: 74.8147, name: "Jamia Masjid & Old Srinagar", destination: "kashmir" },
+  { keywords: ["chashme shahi", "pari mahal"], lat: 34.0872, lng: 74.8770, name: "Pari Mahal & Chashme Shahi", destination: "kashmir" },
+  { keywords: ["gulmarg", "meadow of flowers"], lat: 34.0530, lng: 74.4200, name: "Gulmarg Alpine Valley", destination: "kashmir" },
+  { keywords: ["gulmarg gondola", "apharwat", "apharwat peak"], lat: 34.0484, lng: 74.3805, name: "Gulmarg Gondola & Apharwat Peak", destination: "kashmir" },
+  { keywords: ["st mary", "golf course stroll", "victorian stone"], lat: 34.0530, lng: 74.3880, name: "Gulmarg St. Mary's & Golf Meadows", destination: "kashmir" },
+  { keywords: ["pahalgam", "pampore", "saffron field", "lidder"], lat: 34.0163, lng: 75.3150, name: "Pahalgam Valley & Lidder River", destination: "kashmir" },
+  { keywords: ["betaab valley", "aru valley"], lat: 34.0370, lng: 75.3520, name: "Betaab Valley & Aru Valley", destination: "kashmir" },
+  { keywords: ["baisaran", "mini switzerland"], lat: 34.0040, lng: 75.3280, name: "Baisaran 'Mini Switzerland'", destination: "kashmir" },
+  { keywords: ["lal chowk", "pashmina", "walnut wood"], lat: 34.0722, lng: 74.8085, name: "Lal Chowk Artisan Market", destination: "kashmir" },
+  { keywords: ["chai jaai", "kahwa", "tea room"], lat: 34.0715, lng: 74.8180, name: "Chai Jaai Vintage Tea Room", destination: "kashmir" },
+  { keywords: ["sonamarg", "thajiwas"], lat: 34.3050, lng: 75.2950, name: "Sonamarg Meadow of Gold", destination: "kashmir" },
+  { keywords: ["shankaracharya"], lat: 34.0750, lng: 74.8480, name: "Shankaracharya Hill Temple", destination: "kashmir" },
 
   // Goa Landmarks
-  { keywords: ["goa airport", "dabolim", "mopa"], lat: 15.3808, lng: 73.8314, name: "Goa Airport" },
-  { keywords: ["baga beach", "tito"], lat: 15.5553, lng: 73.7517, name: "Baga Beach" },
-  { keywords: ["calangute"], lat: 15.5442, lng: 73.7554, name: "Calangute Beach" },
-  { keywords: ["anjuna", "anjuna flea market"], lat: 15.5733, lng: 73.7410, name: "Anjuna Beach" },
-  { keywords: ["vagator", "chapora fort"], lat: 15.6059, lng: 73.7389, name: "Chapora Fort & Vagator" },
-  { keywords: ["aguada", "fort aguada", "candolim"], lat: 15.4924, lng: 73.7738, name: "Fort Aguada" },
-  { keywords: ["panaji", "fontainhas", "latin quarter"], lat: 15.4989, lng: 73.8278, name: "Fontainhas Panaji" },
-  { keywords: ["palolem", "agonda"], lat: 15.0100, lng: 74.0232, name: "Palolem Beach" },
+  { keywords: ["goa airport", "dabolim"], lat: 15.3808, lng: 73.8314, name: "Dabolim International Airport (GOI)", destination: "goa" },
+  { keywords: ["mopa airport", "manohar airport", "mopa"], lat: 15.7725, lng: 73.8683, name: "Manohar Int'l Airport Mopa (GOX)", destination: "goa" },
+  { keywords: ["candolim", "candolim beach"], lat: 15.5173, lng: 73.7634, name: "Candolim Beach Promenade", destination: "goa" },
+  { keywords: ["fort aguada", "aguada lighthouse", "aguada"], lat: 15.4924, lng: 73.7738, name: "Fort Aguada & Lighthouse", destination: "goa" },
+  { keywords: ["baga", "baga beach", "tito"], lat: 15.5553, lng: 73.7517, name: "Baga Beach Promenade", destination: "goa" },
+  { keywords: ["calangute", "calangute beach"], lat: 15.5442, lng: 73.7554, name: "Calangute Beach", destination: "goa" },
+  { keywords: ["anjuna", "anjuna flea market"], lat: 15.5733, lng: 73.7410, name: "Anjuna Beach & Flea Market", destination: "goa" },
+  { keywords: ["chapora", "chapora fort", "dil chahta hai"], lat: 15.6059, lng: 73.7389, name: "Chapora Fort & Dil Chahta Hai Viewpoint", destination: "goa" },
+  { keywords: ["vagator", "vagator beach", "sundowner"], lat: 15.5980, lng: 73.7380, name: "Vagator Clifftop & Beach", destination: "goa" },
+  { keywords: ["thalassa", "olive bar"], lat: 15.6265, lng: 73.7485, name: "Thalassa Clifftop Sunset Lounge", destination: "goa" },
+  { keywords: ["bom jesus", "basilica of bom jesus"], lat: 15.5009, lng: 73.9116, name: "Basilica of Bom Jesus (Old Goa)", destination: "goa" },
+  { keywords: ["se cathedral", "old goa cathedrals"], lat: 15.5034, lng: 73.9126, name: "Se Cathedral (Old Goa)", destination: "goa" },
+  { keywords: ["fontainhas", "latin quarter", "panaji", "panjim"], lat: 15.4989, lng: 73.8278, name: "Fontainhas Latin Quarter Panaji", destination: "goa" },
+  { keywords: ["mandovi", "sunset cruise", "river cruise"], lat: 15.4998, lng: 73.8320, name: "Mandovi River Cruise Terminal", destination: "goa" },
+  { keywords: ["palolem", "palolem beach"], lat: 15.0100, lng: 74.0232, name: "Palolem Beach South Goa", destination: "goa" },
+  { keywords: ["colva", "colva beach"], lat: 15.2750, lng: 73.9150, name: "Colva Beach South Goa", destination: "goa" },
+  { keywords: ["dudhsagar", "dudhsagar waterfall"], lat: 15.3144, lng: 74.3143, name: "Dudhsagar Waterfalls", destination: "goa" },
+  { keywords: ["sahakari", "spice plantation"], lat: 15.4120, lng: 74.0150, name: "Sahakari Spice Plantation Ponda", destination: "goa" },
+  { keywords: ["panaji market", "panaji cashew", "viva panjim"], lat: 15.4950, lng: 73.8220, name: "Panaji Market & Heritage Cafes", destination: "goa" },
+  { keywords: ["britto", "curlies"], lat: 15.5560, lng: 73.7510, name: "Baga Coastal Wavefront", destination: "goa" },
+
+  // Kerala Landmarks
+  { keywords: ["cochin airport", "cial", "nedumbassery"], lat: 10.1518, lng: 76.3930, name: "Cochin International Airport", destination: "kerala" },
+  { keywords: ["fort kochi", "mattancherry", "jew town", "chinese fishing"], lat: 9.9674, lng: 76.2454, name: "Fort Kochi & Harbor", destination: "kerala" },
+  { keywords: ["kochi", "cochin", "marine drive", "ernakulam"], lat: 9.9816, lng: 76.2750, name: "Kochi City & Marine Drive", destination: "kerala" },
+  { keywords: ["marari beach", "marari homestay", "marari"], lat: 9.6006, lng: 76.2990, name: "Marari Beach", destination: "kerala" },
+  { keywords: ["alleppey", "alappuzha", "backwaters", "kettuvallam"], lat: 9.4981, lng: 76.3388, name: "Alleppey Backwaters", destination: "kerala" },
+  { keywords: ["punnamada", "punnamada lake walk"], lat: 9.5200, lng: 76.3650, name: "Punnamada Lake", destination: "kerala" },
+  { keywords: ["vembanad lake", "vembanad"], lat: 9.5050, lng: 76.3500, name: "Vembanad Lake Shikara Cruise", destination: "kerala" },
+  { keywords: ["varkala beach", "papanasam beach"], lat: 8.7379, lng: 76.7163, name: "Varkala Beach", destination: "kerala" },
+  { keywords: ["varkala cliff", "north cliff", "south cliff"], lat: 8.7420, lng: 76.7080, name: "Varkala Cliff Promenade", destination: "kerala" },
+  { keywords: ["trivandrum", "thiruvananthapuram", "padmanabhaswamy"], lat: 8.5241, lng: 76.9366, name: "Thiruvananthapuram City", destination: "kerala" },
+  { keywords: ["kovalam", "lighthouse beach", "hawah beach"], lat: 8.4004, lng: 76.9787, name: "Kovalam Lighthouse Beach", destination: "kerala" },
+  { keywords: ["munnar", "tea garden", "tea plantation", "tea museum"], lat: 10.0889, lng: 77.0595, name: "Munnar Tea Hills", destination: "kerala" },
+  { keywords: ["mattupetty", "mattupetty dam", "echo point"], lat: 10.1064, lng: 77.1245, name: "Mattupetty Dam", destination: "kerala" },
+  { keywords: ["eravikulam", "anamudi", "nilgiri tahr"], lat: 10.2000, lng: 77.0600, name: "Eravikulam National Park", destination: "kerala" },
+  { keywords: ["thekkady", "periyar lake", "periyar wildlife"], lat: 9.6031, lng: 77.1615, name: "Periyar Wildlife Sanctuary", destination: "kerala" },
+  { keywords: ["wayanad", "edakkal", "banasura sagar", "chembra"], lat: 11.6854, lng: 76.1320, name: "Wayanad Hills", destination: "kerala" },
+  { keywords: ["kumarakom", "kumarakom bird"], lat: 9.6175, lng: 76.4301, name: "Kumarakom Sanctuary", destination: "kerala" },
+  { keywords: ["athirappilly", "athirapally waterfall"], lat: 10.2851, lng: 76.5698, name: "Athirappilly Waterfalls", destination: "kerala" },
 
   // Delhi Landmarks
-  { keywords: ["delhi airport", "igi airport", "indira gandhi"], lat: 28.5562, lng: 77.1000, name: "Indira Gandhi Airport (DEL)" },
-  { keywords: ["india gate", "kartavya path"], lat: 28.6129, lng: 77.2295, name: "India Gate" },
-  { keywords: ["connaught place", "cp"], lat: 28.6315, lng: 77.2167, name: "Connaught Place" },
-  { keywords: ["red fort", "lal qila"], lat: 28.6562, lng: 77.2410, name: "Red Fort" },
-  { keywords: ["qutub minar", "mehrauli"], lat: 28.5244, lng: 77.1855, name: "Qutub Minar" },
-  { keywords: ["humayun"], lat: 28.5873, lng: 77.2464, name: "Humayun's Tomb" },
-  { keywords: ["lotus temple", "bahai"], lat: 28.5535, lng: 77.2588, name: "Lotus Temple" },
-  { keywords: ["akshardham"], lat: 28.6127, lng: 77.2773, name: "Akshardham Temple" },
-  { keywords: ["chandni chowk", "jama masjid"], lat: 28.6505, lng: 77.2303, name: "Chandni Chowk" },
-  { keywords: ["lodhi garden"], lat: 28.5933, lng: 77.2197, name: "Lodhi Garden" },
+  { keywords: ["delhi airport", "igi airport", "indira gandhi"], lat: 28.5562, lng: 77.1000, name: "Indira Gandhi Airport (DEL)", destination: "delhi" },
+  { keywords: ["india gate", "kartavya path"], lat: 28.6129, lng: 77.2295, name: "India Gate", destination: "delhi" },
+  { keywords: ["connaught place", "cp"], lat: 28.6315, lng: 77.2167, name: "Connaught Place", destination: "delhi" },
+  { keywords: ["red fort", "lal qila"], lat: 28.6562, lng: 77.2410, name: "Red Fort", destination: "delhi" },
+  { keywords: ["qutub minar", "mehrauli"], lat: 28.5244, lng: 77.1855, name: "Qutub Minar", destination: "delhi" },
+  { keywords: ["humayun"], lat: 28.5873, lng: 77.2464, name: "Humayun's Tomb", destination: "delhi" },
+  { keywords: ["lotus temple", "bahai"], lat: 28.5535, lng: 77.2588, name: "Lotus Temple", destination: "delhi" },
+  { keywords: ["akshardham"], lat: 28.6127, lng: 77.2773, name: "Akshardham Temple", destination: "delhi" },
+  { keywords: ["chandni chowk", "jama masjid"], lat: 28.6505, lng: 77.2303, name: "Chandni Chowk", destination: "delhi" },
+  { keywords: ["lodhi garden", "lodhi"], lat: 28.5933, lng: 77.2197, name: "Lodhi Garden", destination: "delhi" },
+  { keywords: ["sunder nursery"], lat: 28.5925, lng: 77.2470, name: "Sunder Nursery", destination: "delhi" },
+  { keywords: ["hauz khas"], lat: 28.5494, lng: 77.1944, name: "Hauz Khas Village", destination: "delhi" },
+  { keywords: ["bangla sahib"], lat: 28.6263, lng: 77.2090, name: "Gurudwara Bangla Sahib", destination: "delhi" },
+  { keywords: ["dilli haat"], lat: 28.5733, lng: 77.2084, name: "Dilli Haat INA", destination: "delhi" },
+  { keywords: ["paranthe wali gali"], lat: 28.6558, lng: 77.2312, name: "Paranthe Wali Gali", destination: "delhi" },
+  { keywords: ["khari baoli"], lat: 28.6575, lng: 77.2215, name: "Khari Baoli Spice Market", destination: "delhi" },
+  { keywords: ["national museum", "janpath"], lat: 28.6117, lng: 77.2195, name: "National Museum Janpath", destination: "delhi" },
+  { keywords: ["khan market"], lat: 28.6003, lng: 77.2270, name: "Khan Market", destination: "delhi" },
 
   // Bengaluru Landmarks
-  { keywords: ["kempegowda airport", "bangalore airport", "kia"], lat: 13.1986, lng: 77.7066, name: "Kempegowda Int'l Airport" },
-  { keywords: ["cubbon park", "vidhana soudha"], lat: 12.9763, lng: 77.5929, name: "Cubbon Park & Vidhana Soudha" },
-  { keywords: ["lalbagh", "botanical garden"], lat: 12.9507, lng: 77.5848, name: "Lalbagh Garden" },
-  { keywords: ["bangalore palace"], lat: 12.9988, lng: 77.5921, name: "Bangalore Palace" },
-  { keywords: ["indiranagar", "100ft road"], lat: 12.9719, lng: 77.6412, name: "Indiranagar 100ft Rd" },
-  { keywords: ["commercial street"], lat: 12.9822, lng: 77.6083, name: "Commercial Street" },
+  { keywords: ["kempegowda airport", "bangalore airport", "kia"], lat: 13.1986, lng: 77.7066, name: "Kempegowda Int'l Airport", destination: "bengaluru" },
+  { keywords: ["cubbon park", "vidhana soudha"], lat: 12.9763, lng: 77.5929, name: "Cubbon Park & Vidhana Soudha", destination: "bengaluru" },
+  { keywords: ["lalbagh", "botanical garden"], lat: 12.9507, lng: 77.5848, name: "Lalbagh Garden", destination: "bengaluru" },
+  { keywords: ["bangalore palace"], lat: 12.9988, lng: 77.5921, name: "Bangalore Palace", destination: "bengaluru" },
+  { keywords: ["indiranagar", "100ft road"], lat: 12.9719, lng: 77.6412, name: "Indiranagar 100ft Rd", destination: "bengaluru" },
+  { keywords: ["commercial street"], lat: 12.9822, lng: 77.6083, name: "Commercial Street", destination: "bengaluru" },
 
   // Rajasthan Landmarks
-  { keywords: ["amber fort", "amer fort"], lat: 26.9855, lng: 75.8513, name: "Amer Fort" },
-  { keywords: ["hawa mahal"], lat: 26.9239, lng: 75.8267, name: "Hawa Mahal" },
-  { keywords: ["city palace jaipur"], lat: 26.9258, lng: 75.8236, name: "City Palace Jaipur" },
-  { keywords: ["jal mahal"], lat: 26.9534, lng: 75.8462, name: "Jal Mahal" },
-  { keywords: ["nahargarh"], lat: 26.9372, lng: 75.8156, name: "Nahargarh Fort" },
-  { keywords: ["lake pichola", "city palace udaipur"], lat: 24.5764, lng: 73.6835, name: "Lake Pichola & City Palace" },
-  { keywords: ["mehrangarh"], lat: 26.2978, lng: 73.0185, name: "Mehrangarh Fort" },
-  { keywords: ["sam sand dunes", "jaisalmer fort"], lat: 26.8333, lng: 70.5167, name: "Jaisalmer Dunes" },
+  { keywords: ["amber fort", "amer fort"], lat: 26.9855, lng: 75.8513, name: "Amer Fort", destination: "rajasthan" },
+  { keywords: ["hawa mahal"], lat: 26.9239, lng: 75.8267, name: "Hawa Mahal", destination: "rajasthan" },
+  { keywords: ["city palace jaipur"], lat: 26.9258, lng: 75.8236, name: "City Palace Jaipur", destination: "rajasthan" },
+  { keywords: ["jal mahal"], lat: 26.9534, lng: 75.8462, name: "Jal Mahal", destination: "rajasthan" },
+  { keywords: ["nahargarh"], lat: 26.9372, lng: 75.8156, name: "Nahargarh Fort", destination: "rajasthan" },
+  { keywords: ["lake pichola", "city palace udaipur"], lat: 24.5764, lng: 73.6835, name: "Lake Pichola & City Palace", destination: "rajasthan" },
+  { keywords: ["mehrangarh"], lat: 26.2978, lng: 73.0185, name: "Mehrangarh Fort", destination: "rajasthan" },
+  { keywords: ["sam sand dunes", "jaisalmer fort"], lat: 26.8333, lng: 70.5167, name: "Jaisalmer Dunes", destination: "rajasthan" },
 
-  // Himachal & Himalayas
-  { keywords: ["solang valley", "solang"], lat: 32.3167, lng: 77.1583, name: "Solang Valley" },
-  { keywords: ["atal tunnel", "rohtang"], lat: 32.3667, lng: 77.2000, name: "Atal Tunnel & Rohtang" },
-  { keywords: ["hadimba", "mall road manali"], lat: 32.2483, lng: 77.1811, name: "Hadimba Temple & Mall Road" },
-  { keywords: ["dal lake", "shikara ride srinagar"], lat: 34.0837, lng: 74.8373, name: "Dal Lake Srinagar" },
-  { keywords: ["gulmarg gondola"], lat: 34.0484, lng: 74.3805, name: "Gulmarg Gondola" },
-  { keywords: ["ram jhula", "lakshman jhula", "triveni ghat", "ganga aarti"], lat: 30.1250, lng: 78.3180, name: "Ram Jhula & Ganga Aarti" },
+  // Himachal Landmarks
+  { keywords: ["solang valley", "solang"], lat: 32.3167, lng: 77.1583, name: "Solang Valley", destination: "himachal" },
+  { keywords: ["atal tunnel", "rohtang"], lat: 32.3667, lng: 77.2000, name: "Atal Tunnel & Rohtang", destination: "himachal" },
+  { keywords: ["hadimba", "mall road manali"], lat: 32.2483, lng: 77.1811, name: "Hadimba Temple & Mall Road", destination: "himachal" },
+  { keywords: ["ram jhula", "lakshman jhula", "triveni ghat", "ganga aarti"], lat: 30.1250, lng: 78.3180, name: "Ram Jhula & Ganga Aarti", destination: "rishikesh" },
 
   // Mathura, Vrindavan & Braj Heritage
   { keywords: ["krishna janmabhoomi", "janmabhoomi", "keshava deo", "shri krishna"], lat: 27.5048, lng: 77.6698, name: "Shri Krishna Janmabhoomi Temple" },
@@ -741,21 +778,223 @@ const CURATED_DESTINATION_PLANS = {
       ],
     },
   ],
+  delhi: [
+    {
+      label: "Old Delhi Heritage & Mughal Splendors",
+      activities: [
+        { time: "9:00 AM", title: "Red Fort (Lal Qila) & Lahori Gate Walk", note: "Historic 17th-century Mughal imperial palace and majestic red sandstone ramparts." },
+        { time: "11:30 AM", title: "Jama Masjid & Chandni Chowk Rickshaw Trail", note: "One of India's largest mosques, followed by a cycle-rickshaw ride through vibrant spice bazaars." },
+        { time: "1:30 PM", title: "Street Food Lunch at Paranthe Wali Gali", note: "Legendary stuffed paranthas served with sweet lassi, rabri, and tangy mint chutneys." },
+        { time: "4:00 PM", title: "Khari Baoli Asia's Largest Spice Market", note: "Immerse in the intoxicating aromas of saffron, cardamom, teas, and dried nuts." },
+        { time: "7:30 PM", title: "Evening Sound & Light Show at Red Fort", note: "Relive 300 years of Delhi's dramatic history through illuminated laser and audio storytelling." },
+      ],
+    },
+    {
+      label: "New Delhi Imperial Avenues & Modern Icons",
+      activities: [
+        { time: "8:30 AM", title: "India Gate & Kartavya Path Promenade", note: "War memorial arch and the ceremonial avenue leading up to Rashtrapati Bhavan." },
+        { time: "11:00 AM", title: "National Museum & Janpath Artisan Market", note: "Marvel at ancient Harappan relics, Mughal miniatures, and shop for Indian handicrafts." },
+        { time: "1:30 PM", title: "Classic Dining at Connaught Place (CP)", note: "Sample North Indian curries and Mughlai delicacies in historic colonial colonnades." },
+        { time: "4:00 PM", title: "Gurudwara Bangla Sahib & Sarovar Stroll", note: "Peaceful Sikh temple featuring gold domes, sacred pond, and world's largest community kitchen (Langar)." },
+        { time: "7:00 PM", title: "Dilli Haat Food & Handicrafts Bazaar", note: "Open-air village craft market with authentic regional food stalls from all Indian states." },
+      ],
+    },
+    {
+      label: "Sufi Corridors, Tombs & Lush Gardens",
+      activities: [
+        { time: "9:00 AM", title: "Humayun's Tomb & Sunder Nursery UNESCO Gardens", note: "Persian garden tomb masterpiece that inspired the Taj Mahal, surrounded by restored Mughal flora." },
+        { time: "12:00 PM", title: "Lodhi Garden Heritage Walk & 15th-Century Tombs", note: "Stroll amidst manicured lawns, duck ponds, and dramatic Sayyid and Lodhi dynasty monuments." },
+        { time: "3:00 PM", title: "Lodhi Art District Murals & Photography", note: "India's first open-air public art district with massive contemporary wall murals." },
+        { time: "6:30 PM", title: "Khan Market Espresso & Boutique Browsing", note: "Delhi's most sophisticated retail enclave with indie bookshops and artisan dining." },
+      ],
+    },
+    {
+      label: "Southern Monuments, Qutub Minar & Hauz Khas",
+      activities: [
+        { time: "9:00 AM", title: "Qutub Minar & Iron Pillar of Delhi", note: "UNESCO 73-meter fluted minaret and ancient rust-resistant 4th-century iron pillar." },
+        { time: "12:00 PM", title: "Mehrauli Archaeological Park Stepwell Walk", note: "Sprawling historical reserve with Jamali Kamali mosque and secluded 16th-century ruins." },
+        { time: "2:30 PM", title: "Hauz Khas Village Lakeside Dining", note: "Trendsetting café overlooking the 13th-century water reservoir and madrasa ruins." },
+        { time: "5:30 PM", title: "Hauz Khas Fort Sunset & Indie Boutiques", note: "Hip artisan studios, vinyl stores, and sunset views over the monument lake." },
+      ],
+    },
+    {
+      label: "Spiritual Marvels & Grand Farewell",
+      activities: [
+        { time: "9:30 AM", title: "Akshardham Temple & Cultural Boat Ride", note: "Spectacular pink sandstone and white marble carvings displaying 10,000 years of Indian culture." },
+        { time: "1:00 PM", title: "Lotus Temple (Bahá'í House of Worship)", note: "Iconic lotus-shaped sanctuary welcoming people of all faiths for silent meditation." },
+        { time: "4:00 PM", title: "Souvenir Shopping & Transfer to Indira Gandhi Airport (DEL)", note: "Pick up hand-painted silk scarves, Darjeeling tea, and brass handicrafts before departure." },
+      ],
+    },
+  ],
+  manali: [
+    {
+      label: "Old Manali Vibe & Hadimba Temple",
+      activities: [
+        { time: "11:00 AM", title: "Arrive in Manali & Alpine Resort Check-in", note: "Cedar-wood chalets overlooking pine valleys and snow peaks." },
+        { time: "2:30 PM", title: "Hadimba Temple & Dhungri Van Vihar", note: "16th-century pagoda-style timber temple nestled inside ancient deodar woods." },
+        { time: "5:00 PM", title: "Old Manali Cafe Crawl & Live Acoustic Music", note: "Chill vibes, woodfired trout pizzas, and mountain herb infusions." },
+      ],
+    },
+    {
+      label: "Solang Valley Snow Adventures & Cable Car",
+      activities: [
+        { time: "8:30 AM", title: "Solang Valley Paragliding & Zorbing", note: "Gliding across alpine valleys with panoramic views of the Pir Panjal range." },
+        { time: "12:30 PM", title: "Solang Ropeway Ride to Mount Phatru", note: "Gondola ascent up to 10,500 feet for panoramic snowfields." },
+        { time: "4:30 PM", title: "Anjani Mahadev Waterfall & Snow Walk", note: "Short scenic trek to the naturally forming ice lingam." },
+      ],
+    },
+    {
+      label: "Atal Tunnel & Lahaul Valley Sissu Waterfall",
+      activities: [
+        { time: "8:00 AM", title: "Atal Tunnel Drive to Lahaul Valley", note: "World's longest highway tunnel above 10,000 feet, opening into stunning trans-Himalayan landscapes." },
+        { time: "11:00 AM", title: "Sissu Waterfall & Chandra River Banks", note: "Cascading glacial waterfall with golden poplars and turquoise river waters." },
+        { time: "3:30 PM", title: "Return to Manali via Rohtang Viewpoint", note: "Crisp mountain air and breathtaking Himalayan pass panoramas." },
+      ],
+    },
+    {
+      label: "Vashisht Hot Springs & Mall Road Departure",
+      activities: [
+        { time: "9:30 AM", title: "Vashisht Natural Sulphur Hot Springs", note: "Soothing natural thermal baths known for therapeutic mineral properties." },
+        { time: "12:30 PM", title: "Mall Road Shopping for Kullu Shawls", note: "Authentic handloom woolen shawls, mountain honey, and dried apricots." },
+        { time: "3:30 PM", title: "Transfer to Bhuntar Airport / Volvo Terminal", note: "Depart with rejuvenating mountain memories." },
+      ],
+    },
+  ],
+  bali: [
+    {
+      label: "Ubud Cultural Welcome & Monkey Forest",
+      activities: [
+        { time: "11:30 AM", title: "Arrive at Denpasar DPS & Ubud Jungle Resort Check-in", note: "Private pool villa surrounded by tropical ravine vegetation." },
+        { time: "2:30 PM", title: "Sacred Ubud Monkey Forest Sanctuary", note: "Ancient banyan roots, mossy temple statues, and playful Balinese macaques." },
+        { time: "6:00 PM", title: "Balinese Royal Palace Dance Performance", note: "Dramatic Legong dance with traditional gamelan music under temple lights." },
+      ],
+    },
+    {
+      label: "Tegallalang Rice Terraces & Waterfall",
+      activities: [
+        { time: "8:00 AM", title: "Tegallalang Rice Terraces & Jungle Swing", note: "Emerald layered emerald valleys with iconic giant jungle swings." },
+        { time: "11:30 AM", title: "Tirta Empul Holy Water Temple Purification", note: "Sacred mountain spring purification ritual in ancient stone basins." },
+        { time: "3:30 PM", title: "Tegenungan Waterfall Canyon Walk", note: "Powerful cascade surrounded by lush jungle foliage and natural swimming pool." },
+      ],
+    },
+    {
+      label: "Uluwatu Cliff & Sunset Kecak Fire Dance",
+      activities: [
+        { time: "9:30 AM", title: "Scenic Transfer to Southern Peninsula", note: "Drive past turquoise limestone bays and dramatic coastal cliffs." },
+        { time: "3:00 PM", title: "Padang Padang Surf Beach", note: "Golden cove sheltered by limestone rocks, popular for gentle swells and sunbathing." },
+        { time: "5:45 PM", title: "Uluwatu Temple Sunset Kecak Fire Dance", note: "Mesmerizing 50-man chanting chorus with fire dancers as the sun melts into the Indian Ocean." },
+      ],
+    },
+    {
+      label: "Artisan Keepsakes & DPS Departure",
+      activities: [
+        { time: "9:30 AM", title: "Sukawati Art Market & Balinese Woodcarvings", note: "Handmade rattan bags, batik sarongs, and organic coconut bowls." },
+        { time: "1:00 PM", title: "Beachside Seafood Lunch at Jimbaran Bay", note: "Fresh grilled snapper with sambal matah on the sand." },
+        { time: "4:00 PM", title: "Transfer to Ngurah Rai Airport", note: "Terima kasih, Bali!" },
+      ],
+    },
+  ],
+  "swiss alps": [
+    {
+      label: "Arrival in Interlaken & Lake Brienz Cruise",
+      activities: [
+        { time: "11:00 AM", title: "Scenic Rail Arrival in Interlaken & Alpine Chalet Check-in", note: "Framed by the Eiger, Mönch, and Jungfrau peaks." },
+        { time: "2:30 PM", title: "Turquoise Lake Brienz Steamer Boat Cruise", note: "Glide past Giessbach Falls and fairy-tale castle villages." },
+        { time: "6:30 PM", title: "Swiss Cheese Fondue & Rösti Dinner", note: "Indulge in bubbling Gruyère and Emmental fondue with crusty alpine bread." },
+      ],
+    },
+    {
+      label: "Jungfraujoch 'Top of Europe' Alpine Glacier",
+      activities: [
+        { time: "8:30 AM", title: "Eiger Express Tricable Gondola & Cogwheel Train", note: "Ultra-modern cable car flying right beneath the Eiger North Face." },
+        { time: "10:30 AM", title: "Jungfraujoch Sphinx Observatory & Ice Palace", note: "3,454m highest railway station in Europe with Ice Palace tunnels." },
+        { time: "2:30 PM", title: "Aletsch Glacier Panorama Walk", note: "View Europe's largest glacier stretching 23 kilometers." },
+      ],
+    },
+    {
+      label: "Lauterbrunnen Valley of 72 Waterfalls",
+      activities: [
+        { time: "9:00 AM", title: "Lauterbrunnen Valley Promenade & Staubbach Falls", note: "The sheer cliff waterfall that inspired Tolkien's Rivendell." },
+        { time: "12:00 PM", title: "Trümmelbach Hidden Glacial Chasm Waterfalls", note: "Subterranean waterfalls carving through the mountain interior." },
+        { time: "4:00 PM", title: "Mürren Car-Free Mountain Village Stroll", note: "Wooden flower-boxed chalets perched high above the Lauterbrunnen valley." },
+      ],
+    },
+    {
+      label: "Swiss Chocolates & Scenic Departure",
+      activities: [
+        { time: "9:30 AM", title: "Artisan Chocolate Workshop & Souvenirs", note: "Handcrafted Swiss truffles, pralines, and army knives." },
+        { time: "12:30 PM", title: "Transfer to Zurich / Geneva Airport", note: "Depart with memories of pristine alpine beauty." },
+      ],
+    },
+  ],
 };
 
-// Smart thematic day generator for any unlisted or custom destination
-function getThematicDay(destination, dayIndex, totalDays) {
+// Smart thematic day generator for any destination, dynamically customized by persona, preferences, budget & travelers
+function getThematicDay(
+  destination,
+  dayIndex,
+  totalDays,
+  persona = "family",
+  preferences = [],
+  budget = 65000,
+  adults = 2,
+  children = 0
+) {
   const isFirst = dayIndex === 0;
   const isLast = dayIndex === totalDays - 1 && totalDays > 1;
+  const hasKids = children > 0 || persona === "family";
+  const isLuxury = budget > 150000;
+  const isBudget = budget < 45000;
 
   if (isFirst) {
+    let afternoonTitle = "Neighborhood Orientation & Promenade";
+    let afternoonNote = `Gentle afternoon walking tour to discover nearby cafes and street architecture in ${destination}.`;
+    let dinnerNote = `Relaxed dining experience sampling famous regional delicacies of ${destination}.`;
+
+    if (persona === "adventure") {
+      afternoonTitle = "Scenic Ridge Trail & Nature Orientation";
+      afternoonNote = `Hike along high-vantage trails capturing panoramic mountain and valley views of ${destination}.`;
+    } else if (persona === "romantic") {
+      afternoonTitle = "Sunset Harbor Promenade & Couples Viewpoint";
+      afternoonNote = `Romantic golden hour walk along the scenic waterfront and historic alleys of ${destination}.`;
+      dinnerNote = "Intimate candlelit dinner featuring regional tasting menu and fine wine pairings.";
+    } else if (hasKids) {
+      afternoonTitle = "Interactive Town Park & Family Discovery Walk";
+      afternoonNote = `Easy-paced stroll through lush botanic gardens and open squares suitable for all ages.`;
+    }
+
+    if (isLuxury) {
+      dinnerNote += " Multi-course fine dining at premier Michelin-starred / 5-star venue.";
+    } else if (isBudget) {
+      dinnerNote += " Authentic popular street food stalls and heritage local mess.";
+    }
+    const wantsDining = preferences.includes('Dining') || preferences.includes('Local food');
+
     return {
       label: `Arrival & Welcome to ${destination}`,
       activities: [
-        { time: "11:30 AM", title: `Arrive in ${destination} & Hotel Check-in`, note: "Transfer from terminal, check-in, settle luggage, and recharge." },
-        { time: "3:00 PM", title: "Neighborhood Orientation & Promenade", note: `Gentle afternoon walking tour to discover nearby cafes and street architecture in ${destination}.` },
-        { time: "6:00 PM", title: "Golden Hour Panoramic Viewpoint", note: "Scenic vantage point to catch the sunset and capture initial memories." },
-        { time: "8:00 PM", title: "Welcome Dinner with Local Specialties", note: `Relaxed dining experience sampling famous regional delicacies of ${destination}.` },
+        {
+          time: "11:30 AM",
+          title: `Arrive in ${destination} & Hotel Check-in`,
+          note: isLuxury
+            ? `Private VIP transfer, check-in to luxury suite, refresh with welcome cocktails.`
+            : `Transfer from terminal, check-in, settle luggage, and recharge for the trip ahead.`,
+        },
+        { time: "3:00 PM", title: afternoonTitle, note: afternoonNote },
+        {
+          time: "6:00 PM",
+          title: "Golden Hour Panoramic Viewpoint",
+          note: `Prime vantage point to catch the sunset and capture initial memories of ${destination}.`,
+        },
+        {
+          time: "8:00 PM",
+          title: wantsDining
+            ? `Welcome Dinner with ${destination} Specialties`
+            : `Evening Stroll & Leisurely Relaxation in ${destination}`,
+          note: wantsDining
+            ? dinnerNote
+            : "Peaceful evening unwinding under the stars and reviewing upcoming adventures.",
+        },
       ],
     };
   }
@@ -764,55 +1003,152 @@ function getThematicDay(destination, dayIndex, totalDays) {
     return {
       label: `Farewell & Souvenirs in ${destination}`,
       activities: [
-        { time: "9:30 AM", title: "Check-out & Artisan Souvenir Hunting", note: `Pick up authentic local crafts, spices, keepsakes, and gifts from ${destination}.` },
-        { time: "12:30 PM", title: "Farewell Brunch at a Cozy Heritage Cafe", note: "Leisurely final meal soaking in the relaxed atmosphere." },
-        { time: "3:00 PM", title: "Transfer to Airport / Train Station", note: "Depart with comfortable buffer time for return transit." },
+        {
+          time: "9:30 AM",
+          title: `Check-out & Artisan Souvenir Hunting in ${destination}`,
+          note: `Pick up authentic local handicrafts, regional spices, keepsakes, and gifts.`,
+        },
+        {
+          time: "12:30 PM",
+          title: wantsDining
+            ? "Farewell Brunch at a Cozy Heritage Cafe"
+            : "Scenic Farewell Vista & Garden Walk",
+          note: wantsDining
+            ? "Leisurely final meal soaking in the relaxed atmosphere before departure."
+            : "Final memorable photoshoot and relaxed contemplation before departure.",
+        },
+        {
+          time: "3:00 PM",
+          title: "Transfer to Airport / Train Station",
+          note: "Depart with comfortable buffer time for return transit.",
+        },
       ],
     };
   }
 
-  // Thematic middle days based on day index
-  const themes = [
+  // Intermediate days tailored dynamically to user preferences and persona
+  const dynamicThemes = [
     {
       label: `Signature Heritage & Iconic Landmarks of ${destination}`,
       activities: [
-        { time: "8:30 AM", title: `Morning Tour of Top ${destination} Monument`, note: "Beat the midday crowds at the premier historic monument." },
-        { time: "12:30 PM", title: "Authentic Regional Lunch at Local Favorite", note: "Savor time-honored recipes recommended by locals." },
-        { time: "3:00 PM", title: "Museum, Art Gallery & Public Square", note: "Explore curated art exhibits, sculptures, and pedestrian plazas." },
-        { time: "6:30 PM", title: "Sunset River / Clifftop Walk & Evening Dining", note: "Scenic golden hour followed by vibrant atmospheric dining." },
+        {
+          time: "8:30 AM",
+          title: `Morning Tour of Top ${destination} Monument`,
+          note: hasKids
+            ? "Interactive historical monument visit with storytelling guide."
+            : "Beat the midday crowds at the premier historic architectural landmark.",
+        },
+        {
+          time: "12:30 PM",
+          title: wantsDining
+            ? "Authentic Regional Lunch at Local Favorite"
+            : "Midday Scenic Break & Relaxation at Promenade",
+          note: wantsDining
+            ? "Savor time-honored recipes recommended by locals."
+            : "Rest, hydrate, and enjoy comfortable shade amidst historic surroundings.",
+        },
+        {
+          time: "3:00 PM",
+          title: preferences.includes("Museums")
+            ? `National Museum & Art Galleries of ${destination}`
+            : preferences.includes("Beaches")
+            ? `Coastal Promenade & Beachfront Walk in ${destination}`
+            : `Historic Quarter & Pedestrian Plaza in ${destination}`,
+          note: "Discover regional art, architecture, and cultural masterpieces.",
+        },
+        {
+          time: "6:30 PM",
+          title: persona === "romantic"
+            ? "Romantic Sunset Clifftop Walk & Candlelight Bistro"
+            : persona === "friends"
+            ? "Sunset Rooftop Lounge & Evening Festivities"
+            : "Scenic Golden Hour Stroll & Family Walk",
+          note: "Unwind as city lights illuminate the historic skyline.",
+        },
       ],
     },
     {
-      label: `Flavors, Food Markets & Artisan Crafts in ${destination}`,
+      label: wantsDining
+        ? `Flavors, Food Markets & Artisan Crafts in ${destination}`
+        : `Artisan Bazaars, Scenic Viewpoints & Culture in ${destination}`,
       activities: [
-        { time: "9:00 AM", title: `Historic Central Market & Street Food Trail`, note: "Bustling stalls filled with fresh produce, regional delicacies, and aromas." },
-        { time: "12:00 PM", title: "Culinary Tasting Session & Sweet Treats", note: "Handcrafted pastries, artisanal tea/coffee, and regional street specialties." },
-        { time: "2:30 PM", title: "Craftsmen & Independent Boutiques Quarter", note: "Watch local artisans at work and browse handmade jewelry and textiles." },
-        { time: "7:00 PM", title: "Rooftop Lounge & Signature Dinner", note: "Panoramic evening skyline views paired with chef's tasting menu." },
+        {
+          time: "9:00 AM",
+          title: wantsDining
+            ? `Central Heritage Market & Street Food Trail in ${destination}`
+            : `Central Heritage Promenade & Morning Vistas in ${destination}`,
+          note: wantsDining
+            ? "Bustling stalls filled with fresh produce, regional delicacies, and fragrant spices."
+            : "Lively morning pedestrian lanes, historic architecture, and local life.",
+        },
+        {
+          time: "12:00 PM",
+          title: wantsDining
+            ? "Culinary Tasting Session & Sweet Treats"
+            : "Midday Panoramic Viewpoint & Tea Break",
+          note: wantsDining
+            ? "Handcrafted regional pastries, artisanal tea/coffee, and authentic snacks."
+            : "Elevated vantage point overlooking the destination with refreshing beverages.",
+        },
+        {
+          time: "2:30 PM",
+          title: preferences.includes("Shopping")
+            ? `Boutique Handicraft Hubs & Silk Bazaars in ${destination}`
+            : `Artisan Studios & Creative Quarter in ${destination}`,
+          note: "Watch master craftspeople at work and browse handmade jewelry and textiles.",
+        },
+        {
+          time: "7:00 PM",
+          title: persona === "adventure"
+            ? "Night Safari or Stargazing Experience"
+            : wantsDining
+            ? "Traditional Music & Cultural Evening Dinner"
+            : "Traditional Music & Cultural Evening Performance",
+          note: "Engaging folk performance and vibrant night market atmosphere.",
+        },
       ],
     },
     {
-      label: `Nature Escapes & Scenic Corridors around ${destination}`,
+      label: preferences.includes("Trekking") || preferences.includes("Mountains") || persona === "adventure"
+        ? `Alpine Views, Nature Trails & Outdoor Wonders of ${destination}`
+        : `Hidden Alleys & Cultural Corridors of ${destination}`,
       activities: [
-        { time: "8:30 AM", title: "Scenic Countryside / Coastal Excursion", note: `Short picturesque drive to the natural reserves surrounding ${destination}.` },
-        { time: "11:30 AM", title: "Nature Trail, Lake or Botanical Sanctuary", note: "Rejuvenating walk amidst fresh air, greenery, and panoramic nature views." },
-        { time: "1:30 PM", title: "Rustic Farm-to-Table Lunch", note: "Fresh organic seasonal produce in a tranquil setting." },
-        { time: "5:30 PM", title: "Return to Town & Relaxing Spa / Tea Lounge", note: "Unwind tired muscles with a wellness treatment or artisanal tea." },
-      ],
-    },
-    {
-      label: `Hidden Alleys & Cultural Gems of ${destination}`,
-      activities: [
-        { time: "9:30 AM", title: "Off-the-Beaten-Path Quarter Walk", note: "Quiet cobblestone streets, colorful murals, and historic architecture away from crowds." },
-        { time: "12:30 PM", title: "Vintage Cafe & Bookshop Lunch", note: "Cozy atmosphere with artisanal salads, quiches, and espresso." },
-        { time: "3:30 PM", title: "Scenic Boat Ride or Heritage Tramway", note: "Classic transport experience viewing the town from a fresh angle." },
-        { time: "7:30 PM", title: "Evening Cultural Performance & Night Market", note: "Traditional music, folk performance, or illuminated night bazaar." },
+        {
+          time: "8:30 AM",
+          title: persona === "adventure"
+            ? `Scenic Ridge Trek & High-Vantage Trail in ${destination}`
+            : `Botanical Garden Stroll & Morning Birdsong in ${destination}`,
+          note: "Lush green natural sanctuary with fresh morning mountain air.",
+        },
+        {
+          time: "12:30 PM",
+          title: wantsDining
+            ? "Riverside or Mountain Viewpoint Lunch"
+            : "Midday Scenic Valley & Stream Relaxation",
+          note: wantsDining
+            ? "Enjoy fresh farm-to-table cuisine overlooking panoramic natural vistas."
+            : "Recharge alongside the mountain stream with refreshing natural sounds.",
+        },
+        {
+          time: "3:30 PM",
+          title: preferences.includes("Photography")
+            ? `Architectural Panorama & Golden Hour Photography in ${destination}`
+            : `Historic Stepwell & Ancient Sanctuary Exploration`,
+          note: "Captivating angles and serene historic atmosphere away from crowded streets.",
+        },
+        {
+          time: "7:30 PM",
+          title: isLuxury
+            ? (wantsDining ? "Gourmet Wine & Dine Experience" : "Private Stargazing & Sunset Terrace")
+            : "Relaxed Evening Vista & Souvenir Stroll",
+          note: "Savor a memorable evening reviewing photos and trip memories.",
+        },
       ],
     },
   ];
 
-  const themeIdx = (dayIndex - 1) % themes.length;
-  return themes[themeIdx];
+  const themeIdx = (dayIndex - 1) % dynamicThemes.length;
+  return dynamicThemes[themeIdx];
 }
 
 export function buildFallbackItinerary(trip = {}) {
@@ -820,6 +1156,11 @@ export function buildFallbackItinerary(trip = {}) {
   const normDest = normalizeDestinationName(rawDest);
   const checkIn = trip.checkIn || trip.startDate;
   const checkOut = trip.checkOut || trip.endDate;
+  const persona = trip.persona || trip.selectedStyle || trip.tripType || "family";
+  const preferences = Array.isArray(trip.preferences) ? trip.preferences : [];
+  const budget = Number(trip.budget) || 65000;
+  const adults = Number(trip.adults) || 2;
+  const children = Number(trip.children) || 0;
 
   const start = checkIn ? new Date(checkIn) : new Date();
   const end = checkOut ? new Date(checkOut) : new Date(start.getTime() + 4 * 86400000);
@@ -840,6 +1181,11 @@ export function buildFallbackItinerary(trip = {}) {
     id: `plan-${normDest}-${Date.now()}`,
     destination: rawDest,
     durationDays: totalDays,
+    persona,
+    preferences,
+    budget,
+    adults,
+    children,
     days: Array.from({ length: totalDays }, (_, i) => {
       const date = new Date(start.getTime() + i * 86400000);
       let dayData;
@@ -855,8 +1201,8 @@ export function buildFallbackItinerary(trip = {}) {
           dayData = curatedList[curIdx];
         }
       } else {
-        // Fallback to high-quality dynamic thematic builder
-        dayData = getThematicDay(rawDest, i, totalDays);
+        // Fallback to high-quality dynamic thematic builder customized to persona & preferences
+        dayData = getThematicDay(rawDest, i, totalDays, persona, preferences, budget, adults, children);
       }
 
       return {
@@ -870,10 +1216,26 @@ export function buildFallbackItinerary(trip = {}) {
         activities: (dayData.activities || []).map((a, j) => ({
           id: `day-${i + 1}-act-${j + 1}`,
           ...a,
+          note: a.note || "",
         })),
       };
     }),
   };
+}
+
+// Calculate approximate distance in kilometers between two GPS coordinates
+export function getGeoDistanceKm(lat1, lon1, lat2, lon2) {
+  const R = 6371; // Earth radius in km
+  const dLat = (lat2 - lat1) * (Math.PI / 180);
+  const dLon = (lon2 - lon1) * (Math.PI / 180);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * (Math.PI / 180)) *
+      Math.cos(lat2 * (Math.PI / 180)) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
 }
 
 // Convert itinerary activities into rich route stops with real GPS coordinates for Google Maps
@@ -898,12 +1260,32 @@ export function itineraryToRouteStops(itinerary, rawDestination = "", overrideCe
     dayActivities.forEach((act, actIdx) => {
       const text = `${act.title || ""} ${act.name || ""} ${act.note || ""} ${act.description || ""}`.toLowerCase();
 
-      // 1. Scan against comprehensive specific place catalogue
+      // 1. First priority: Places explicitly matching the destination category
       let matchedPlace = null;
       for (const place of SPECIFIC_PLACES) {
-        if (place.keywords.some((kw) => text.includes(kw))) {
-          matchedPlace = place;
-          break;
+        if (
+          place.destination &&
+          (place.destination === normDest ||
+            normDest.includes(place.destination) ||
+            place.destination.includes(normDest))
+        ) {
+          if (place.keywords.some((kw) => text.includes(kw))) {
+            matchedPlace = place;
+            break;
+          }
+        }
+      }
+
+      // 2. Second priority: General/untagged places STRICTLY within 120km of the destination center
+      if (!matchedPlace) {
+        for (const place of SPECIFIC_PLACES) {
+          if (place.keywords.some((kw) => text.includes(kw))) {
+            const distKm = getGeoDistanceKm(center.lat, center.lng, place.lat, place.lng);
+            if (distKm <= 120) {
+              matchedPlace = place;
+              break;
+            }
+          }
         }
       }
 
@@ -914,15 +1296,15 @@ export function itineraryToRouteStops(itinerary, rawDestination = "", overrideCe
         lat = matchedPlace.lat;
         lng = matchedPlace.lng;
       } else {
-        // 2. Realistic geographic route spreading along the destination region
-        // Rather than collapsing into a single point, spread stops along the day's progression
-        const stepOffset = 0.018 * (actIdx + 1);
-        const dayDirection = ((dayIdx * 65 + actIdx * 25) * Math.PI) / 180;
+        // 3. Realistic geographic route spreading along the destination region (tight corridor)
+        const baseAngles = [20, 65, 110, 155, 200, 245, 290, 335];
+        const dayAngle = baseAngles[dayIdx % baseAngles.length];
+        const stopAngle = (dayAngle + (actIdx - 1.5) * 20) * (Math.PI / 180);
+        const radius = 0.012 + actIdx * 0.006;
 
-        lat = center.lat + Math.sin(dayDirection) * stepOffset;
-        lng = center.lng + Math.cos(dayDirection) * stepOffset;
+        lat = center.lat + Math.sin(stopAngle) * radius;
+        lng = center.lng + Math.cos(stopAngle) * radius;
       }
-
 
       stops.push({
         id: act.id || `stop-${day.id}-${actIdx}`,

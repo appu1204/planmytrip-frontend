@@ -82,4 +82,5 @@ export const PERSONAS = {
 
 export const PERSONA_LIST = Object.values(PERSONAS);
 
-export const getPersona = (key) => PERSONAS[key] || PERSONAS.family;
+export const getPersona = (key) =>
+  PERSONAS[typeof key === "string" ? key.toLowerCase() : key] || PERSONAS.family;

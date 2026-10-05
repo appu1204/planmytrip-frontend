@@ -5,11 +5,12 @@ const AuthContext = createContext(null);
 
 function normalizeUser(raw) {
   if (!raw || typeof raw !== "object") return null;
+  const personaValue = raw.persona || raw.travelPersona;
   return {
     ...raw,
     id: raw.id ?? raw.userId ?? raw._id,
     fullName: raw.fullName ?? raw.name ?? raw.username ?? (raw.email ? raw.email.split("@")[0] : "Traveler"),
-    persona: raw.persona || "family",
+    persona: personaValue ? String(personaValue).toLowerCase() : "family",
   };
 }
 

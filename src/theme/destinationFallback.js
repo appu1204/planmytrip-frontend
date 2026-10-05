@@ -119,7 +119,7 @@ export const FALLBACK_DESTINATIONS = {
       bestSeason: "Sep - Nov, Mar - May",
       duration: "3-4 Days",
       highlights: ["Grade IV Ganga Rafting", "Bungee Jumping from 83m", "Evening Ganga Aarti"],
-      image: "https://images.unsplash.com/photo-1596761225579-2479427b3b3e?auto=format&fit=crop&w=800&q=80",
+      image: "https://images.unsplash.com/photo-1506461883276-594a12b11cf3?auto=format&fit=crop&w=800&q=80",
     },
     {
       id: "queenstown",
@@ -240,7 +240,7 @@ export const FALLBACK_DESTINATIONS = {
       bestSeason: "Mar - May, Sep - Oct",
       duration: "5 Days",
       highlights: ["Tram 28 Historic Ride", "Belém Pastéis Tasting", "Miradouro Sunsets"],
-      image: "https://images.unsplash.com/photo-1508672019048-805b876b67e2?auto=format&fit=crop&w=800&q=80",
+      image: "https://images.unsplash.com/photo-1513326738677-b964603b136d?auto=format&fit=crop&w=800&q=80",
     },
   ],
   couple: [

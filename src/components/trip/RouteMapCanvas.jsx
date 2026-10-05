@@ -58,7 +58,13 @@ function calculateDistanceKm(lat1, lon1, lat2, lon2) {
   return R * c;
 }
 
-export default function RouteMapCanvas({ stops = [], destination = "", centerCoords = null }) {
+export default function RouteMapCanvas({
+  stops = [],
+  destination = "",
+  centerCoords = null,
+  activeDayNumber = null,
+  onSelectDay = null,
+}) {
   const mapContainerRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const tileLayerRef = useRef(null);
@@ -69,11 +75,20 @@ export default function RouteMapCanvas({ stops = [], destination = "", centerCoo
 
   const [viewMode, setViewMode] = useState("interactive"); // "interactive" | "embed"
   const [activeLayer, setActiveLayer] = useState("googleRoads");
-  const [selectedDay, setSelectedDay] = useState("all");
+  const [selectedDay, setSelectedDay] = useState(
+    activeDayNumber !== null && activeDayNumber !== undefined ? String(activeDayNumber) : "all"
+  );
   const [activeStop, setActiveStop] = useState(null);
   const [isTrackingLocation, setIsTrackingLocation] = useState(false);
   const [userLocation, setUserLocation] = useState(null);
   const [trackingError, setTrackingError] = useState("");
+
+  // Sync with external activeDayNumber if provided and changed
+  useEffect(() => {
+    if (activeDayNumber !== null && activeDayNumber !== undefined) {
+      setSelectedDay(String(activeDayNumber));
+    }
+  }, [activeDayNumber]);
 
   // Unique list of days present in stops
   const availableDays = useMemo(() => {
@@ -87,7 +102,7 @@ export default function RouteMapCanvas({ stops = [], destination = "", centerCoo
   // Filter stops based on selected day
   const filteredStops = useMemo(() => {
     if (selectedDay === "all") return stops;
-    return stops.filter((s) => s.dayNumber === Number(selectedDay));
+    return stops.filter((s) => String(s.dayNumber) === String(selectedDay));
   }, [stops, selectedDay]);
 
   // Calculate nearest stop to user location
@@ -111,11 +126,25 @@ export default function RouteMapCanvas({ stops = [], destination = "", centerCoo
   const recenterOnRoute = useCallback(() => {
     const map = mapInstanceRef.current;
     if (!map) return;
+
+    // Check that map container has been sized by browser layout
+    const size = map.getSize();
+    if (!size || size.x < 40 || size.y < 40) {
+      setTimeout(() => {
+        if (mapInstanceRef.current) {
+          mapInstanceRef.current.invalidateSize();
+          recenterOnRoute();
+        }
+      }, 150);
+      return;
+    }
+
     const targetStops = filteredStops.length > 0 ? filteredStops : stops;
     const latLngs = targetStops.filter((s) => s.lat && s.lng).map((s) => [s.lat, s.lng]);
+
     if (!latLngs.length) {
       if (centerCoords?.lat && centerCoords?.lng) {
-        map.setView([centerCoords.lat, centerCoords.lng], 13);
+        map.setView([centerCoords.lat, centerCoords.lng], 12);
       }
       return;
     }
@@ -124,10 +153,15 @@ export default function RouteMapCanvas({ stops = [], destination = "", centerCoo
     if (bounds.isValid()) {
       const sw = bounds.getSouthWest();
       const ne = bounds.getNorthEast();
-      if (Math.abs(sw.lat - ne.lat) < 0.005 && Math.abs(sw.lng - ne.lng) < 0.005) {
-        map.setView(bounds.getCenter(), 13);
+      const latSpan = Math.abs(sw.lat - ne.lat);
+      const lngSpan = Math.abs(sw.lng - ne.lng);
+
+      // If stops are within a city (span < 0.15 deg) or single stop, set city-level zoom
+      if (latSpan < 0.15 && lngSpan < 0.15) {
+        const center = bounds.getCenter();
+        map.setView(center, Math.max(12, Math.min(14, map.getZoom() || 13)));
       } else {
-        map.fitBounds(bounds, { padding: [50, 50], maxZoom: 14 });
+        map.fitBounds(bounds, { padding: [40, 40], maxZoom: 14 });
       }
     }
   }, [filteredStops, stops, centerCoords]);
@@ -144,21 +178,24 @@ export default function RouteMapCanvas({ stops = [], destination = "", centerCoo
     }
   };
 
-  // Initialize Leaflet map
+  // 1. Initialize Leaflet map ONCE on mount
   useEffect(() => {
     if (!mapContainerRef.current) return;
 
     if (!mapInstanceRef.current) {
-      const defaultCenter =
-        stops[0]?.lat && stops[0]?.lng
-          ? [stops[0].lat, stops[0].lng]
-          : centerCoords?.lat && centerCoords?.lng
+      const initialCenter =
+        centerCoords?.lat && centerCoords?.lng
           ? [centerCoords.lat, centerCoords.lng]
-          : [20.5937, 78.9629];
+          : stops[0]?.lat && stops[0]?.lng
+          ? [stops[0].lat, stops[0].lng]
+          : [28.6139, 77.2090]; // default New Delhi
 
       const map = L.map(mapContainerRef.current, {
-        center: defaultCenter,
-        zoom: 11,
+        center: initialCenter,
+        zoom: 12,
+        minZoom: 3,
+        maxZoom: 19,
+        worldCopyJump: false,
         zoomControl: false,
       });
 
@@ -167,6 +204,8 @@ export default function RouteMapCanvas({ stops = [], destination = "", centerCoo
       tileLayerRef.current = L.tileLayer(MAP_LAYERS[activeLayer].url, {
         attribution: MAP_LAYERS[activeLayer].attribution,
         maxZoom: MAP_LAYERS[activeLayer].maxZoom,
+        minZoom: 3,
+        noWrap: false,
         subdomains: MAP_LAYERS[activeLayer].subdomains || [],
       }).addTo(map);
 
@@ -174,14 +213,30 @@ export default function RouteMapCanvas({ stops = [], destination = "", centerCoo
       mapInstanceRef.current = map;
     }
 
-    // Invalidate container size after mount to prevent blank tiles
+    // ResizeObserver to ensure map tile sizes stay accurate when container or layout changes
+    let resizeObserver = null;
+    if (window.ResizeObserver && mapContainerRef.current) {
+      resizeObserver = new ResizeObserver(() => {
+        if (mapInstanceRef.current) {
+          mapInstanceRef.current.invalidateSize();
+        }
+      });
+      resizeObserver.observe(mapContainerRef.current);
+    }
+
+    // Recenter after layout stabilizes
     const timer = setTimeout(() => {
-      mapInstanceRef.current?.invalidateSize();
-      recenterOnRoute();
-    }, 200);
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.invalidateSize();
+        recenterOnRoute();
+      }
+    }, 150);
 
     return () => {
       clearTimeout(timer);
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+      }
       if (watchIdRef.current !== null) {
         navigator.geolocation.clearWatch(watchIdRef.current);
         watchIdRef.current = null;
@@ -191,7 +246,8 @@ export default function RouteMapCanvas({ stops = [], destination = "", centerCoo
         mapInstanceRef.current = null;
       }
     };
-  }, [recenterOnRoute, activeLayer, centerCoords, stops]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Update map size whenever mode or tab becomes interactive
   useEffect(() => {
@@ -199,7 +255,7 @@ export default function RouteMapCanvas({ stops = [], destination = "", centerCoo
       const timer = setTimeout(() => {
         mapInstanceRef.current?.invalidateSize();
         recenterOnRoute();
-      }, 150);
+      }, 100);
       return () => clearTimeout(timer);
     }
   }, [viewMode, selectedDay, recenterOnRoute]);
@@ -213,6 +269,8 @@ export default function RouteMapCanvas({ stops = [], destination = "", centerCoo
     tileLayerRef.current = L.tileLayer(MAP_LAYERS[activeLayer].url, {
       attribution: MAP_LAYERS[activeLayer].attribution,
       maxZoom: MAP_LAYERS[activeLayer].maxZoom,
+      minZoom: 3,
+      noWrap: false,
       subdomains: MAP_LAYERS[activeLayer].subdomains || [],
     }).addTo(mapInstanceRef.current);
   }, [activeLayer]);
@@ -241,6 +299,9 @@ export default function RouteMapCanvas({ stops = [], destination = "", centerCoo
       const isLast = idx === filteredStops.length - 1 && filteredStops.length > 1;
       const bgColor = isFirst ? "#10b981" : isLast ? "#f97316" : "#2563eb";
 
+      // Display clean stop number: when day is filtered, show 1, 2, 3, 4
+      const displayIndex = selectedDay !== "all" ? idx + 1 : (stop.stopIndex || idx + 1);
+
       // Custom HTML Pin Marker
       const customPinHtml = `
         <div style="position: relative; display: flex; flex-direction: column; align-items: center; transform: translate(-50%, -100%); cursor: pointer;">
@@ -258,7 +319,7 @@ export default function RouteMapCanvas({ stops = [], destination = "", centerCoo
             box-shadow: 0 4px 12px rgba(0,0,0,0.35);
             border: 2px solid white;
           ">
-            ${stop.stopIndex || idx + 1}
+            ${displayIndex}
           </div>
           <div style="
             width: 0;
@@ -330,20 +391,11 @@ export default function RouteMapCanvas({ stops = [], destination = "", centerCoo
       }).addTo(map);
     }
 
-    // Fit map bounds safely to stops
+    // Fit map bounds safely to stops using container-aware recenterOnRoute
     if (latLngs.length > 0) {
-      const bounds = L.latLngBounds(latLngs);
-      if (bounds.isValid()) {
-        const sw = bounds.getSouthWest();
-        const ne = bounds.getNorthEast();
-        if (Math.abs(sw.lat - ne.lat) < 0.005 && Math.abs(sw.lng - ne.lng) < 0.005) {
-          map.setView(bounds.getCenter(), 13);
-        } else {
-          map.fitBounds(bounds, { padding: [50, 50], maxZoom: 14 });
-        }
-      }
+      recenterOnRoute();
     }
-  }, [filteredStops, destination]);
+  }, [filteredStops, destination, recenterOnRoute, selectedDay]);
 
   // Real-time GPS Location tracking
   const toggleLocationTracking = () => {
@@ -479,7 +531,10 @@ export default function RouteMapCanvas({ stops = [], destination = "", centerCoo
         <div className="flex flex-wrap items-center gap-1.5">
           <button
             type="button"
-            onClick={() => setSelectedDay("all")}
+            onClick={() => {
+              setSelectedDay("all");
+              if (onSelectDay) onSelectDay("all");
+            }}
             className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
               selectedDay === "all"
                 ? "bg-slate-900 text-white shadow-sm"
@@ -492,7 +547,10 @@ export default function RouteMapCanvas({ stops = [], destination = "", centerCoo
             <button
               key={dayNum}
               type="button"
-              onClick={() => setSelectedDay(String(dayNum))}
+              onClick={() => {
+                setSelectedDay(String(dayNum));
+                if (onSelectDay) onSelectDay(Number(dayNum));
+              }}
               className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
                 selectedDay === String(dayNum)
                   ? "bg-slate-900 text-white shadow-sm"

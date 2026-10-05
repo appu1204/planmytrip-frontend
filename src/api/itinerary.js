@@ -11,32 +11,32 @@ async function requestWithFallback(primaryFn, fallbackFn) {
   }
 }
 
-// POST /api/trip/itineraries/generate — AI Trip Planner screen: generate a plan BEFORE a trip exists yet
+// POST /itineraries/generate — AI Trip Planner screen: generate a plan BEFORE a trip exists yet
 export const generateStandaloneItinerary = (payload) =>
   requestWithFallback(
-    () => client.post("/api/trip/itineraries/generate", payload),
-    () => client.post("/itineraries/generate", payload)
+    () => client.post("/itineraries/generate", payload),
+    () => client.post("/api/trip/itineraries/generate", payload)
   );
 
-// POST /api/trip/trips/:tripId/itinerary/generate — generate a plan for an existing trip
+// POST /trips/:tripId/itinerary/generate — generate a plan for an existing trip
 export const generateItinerary = (tripId, payload) =>
   requestWithFallback(
-    () => client.post(`/api/trip/trips/${tripId}/itinerary/generate`, payload),
-    () => client.post(`/trips/${tripId}/itinerary/generate`, payload)
+    () => client.post(`/trips/${tripId}/itinerary/generate`, payload),
+    () => client.post(`/api/trip/trips/${tripId}/itinerary/generate`, payload)
   );
 
-// GET /api/trip/trips/:tripId/itinerary — fetch the saved plan
+// GET /trips/:tripId/itinerary — fetch the saved plan
 export const getItinerary = (tripId) =>
   requestWithFallback(
-    () => client.get(`/api/trip/trips/${tripId}/itinerary`),
-    () => client.get(`/trips/${tripId}/itinerary`)
+    () => client.get(`/trips/${tripId}/itinerary`),
+    () => client.get(`/api/trip/trips/${tripId}/itinerary`)
   );
 
-// PUT /api/trip/trips/:tripId/itinerary — persist the whole plan
+// PUT /trips/:tripId/itinerary — persist the whole plan
 export const saveItinerary = (tripId, itinerary) =>
   requestWithFallback(
-    () => client.put(`/api/trip/trips/${tripId}/itinerary`, itinerary),
-    () => client.put(`/trips/${tripId}/itinerary`, itinerary)
+    () => client.put(`/trips/${tripId}/itinerary`, itinerary),
+    () => client.put(`/api/trip/trips/${tripId}/itinerary`, itinerary)
   );
 
 // POST /api/trip/trips/:tripId/itinerary/regenerate — re-run AI generation

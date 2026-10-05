@@ -3,6 +3,8 @@ import { Link, useLocation } from "react-router-dom";
 import { Heart, Menu, X, Sparkles, User, LogIn } from "lucide-react";
 import Logo from "../ui/Logo";
 import { getPersona } from "../../theme/personas";
+import { useAuth } from "../../context/AuthContext";
+import AuthDialog from "./AuthDialog";
 
 const NAV_LINKS = [
   { label: "AI Planner", to: "/planner", featured: true },
@@ -14,15 +16,22 @@ const NAV_LINKS = [
 ];
 
 export default function Navbar({
-  user,
+  user: userProp,
   transparent = false,
-  isAuthenticated = Boolean(user),
+  isAuthenticated: isAuthenticatedProp,
   onOpenAuth,
 }) {
+  const auth = useAuth();
+  const user = userProp !== undefined ? userProp : auth.user;
+  const isAuthenticated =
+    isAuthenticatedProp !== undefined
+      ? isAuthenticatedProp
+      : Boolean(userProp ? userProp : auth.isAuthenticated);
   const location = useLocation();
   const persona = getPersona(user?.persona);
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [internalAuthMode, setInternalAuthMode] = useState(null);
 
   useEffect(() => {
     const onScroll = () => {
@@ -31,6 +40,20 @@ export default function Navbar({
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  const handleOpenAuth = (mode = "login") => {
+    if (onOpenAuth) {
+      onOpenAuth(mode);
+    } else {
+      // Close mobile drawer if open and show internal auth dialog
+      setMenuOpen(false);
+      setInternalAuthMode(mode);
+    }
+  };
+
+  const handleCloseAuth = () => {
+    setInternalAuthMode(null);
+  };
 
   const userName = user?.fullName || user?.name || user?.email?.split("@")[0] || "User";
   const initials = userName
@@ -131,7 +154,7 @@ export default function Navbar({
             ) : (
               <button
                 type="button"
-                onClick={() => onOpenAuth?.("login")}
+                onClick={() => handleOpenAuth("login")}
                 className="focus-ring flex items-center gap-2 rounded-full bg-white px-4 py-2 text-xs font-bold text-[#10382b] shadow-md transition hover:-translate-y-0.5 hover:bg-emerald-50 sm:px-5 sm:py-2.5 sm:text-sm"
               >
                 <LogIn className="h-3.5 w-3.5" />
@@ -209,16 +232,25 @@ export default function Navbar({
                 type="button"
                 onClick={() => {
                   setMenuOpen(false);
-                  onOpenAuth?.("login");
+                  handleOpenAuth("login");
                 }}
                 className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-3 text-sm font-bold text-white shadow-md transition active:scale-95"
               >
                 <LogIn className="h-4 w-4" />
-                Log in or sign up
+                <span>Log in or sign up</span>
               </button>
             )}
           </div>
         </div>
+      )}
+
+      {/* Self-contained Auth Dialog Modal for all pages */}
+      {internalAuthMode && !isAuthenticated && (
+        <AuthDialog
+          mode={internalAuthMode}
+          onClose={handleCloseAuth}
+          onModeChange={setInternalAuthMode}
+        />
       )}
     </>
   );

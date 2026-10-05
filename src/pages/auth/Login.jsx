@@ -49,7 +49,12 @@ export default function Login({ embedded = false, onModeChange, onClose }) {
       if (data?.token) {
         login({ token: data.token, user: data.user });
         onClose?.();
-        navigate(data.user?.persona ? "/home" : "/onboarding/persona");
+        const destination = location.state?.from?.pathname || (embedded ? null : "/home");
+        if (!data.user?.persona) {
+          navigate("/onboarding/persona");
+        } else if (destination) {
+          navigate(destination);
+        }
       } else {
         navigate("/verify-otp", { state: { email: form.email, flow: "login" } });
       }
