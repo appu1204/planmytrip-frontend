@@ -11,14 +11,14 @@ import {
   X,
 } from "lucide-react";
 
-// High-performance, open CORS Map Tile Providers
+// High-performance, open CORS Map Tile Providers (100% Free, No Watermark, No API Key Required)
 const MAP_LAYERS = {
-  voyager: {
-    name: "Streets (Voyager)",
-    url: "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
-    attribution: "&copy; OpenStreetMap contributors &copy; CARTO",
-    maxZoom: 20,
-    subdomains: ["a", "b", "c", "d"],
+  streets: {
+    name: "Streets (Esri)",
+    url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}",
+    attribution: "Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong)",
+    maxZoom: 19,
+    subdomains: [],
   },
   satellite: {
     name: "Satellite (Esri)",
@@ -30,7 +30,7 @@ const MAP_LAYERS = {
   osm: {
     name: "OpenStreetMap",
     url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-    attribution: "&copy; OpenStreetMap contributors",
+    attribution: "&copy; <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors",
     maxZoom: 19,
     subdomains: ["a", "b", "c"],
   },
@@ -74,7 +74,7 @@ export default function RouteMapCanvas({
   const watchIdRef = useRef(null);
 
   const [viewMode, setViewMode] = useState("interactive"); // "interactive" | "embed"
-  const [activeLayer, setActiveLayer] = useState("voyager");
+  const [activeLayer, setActiveLayer] = useState("streets");
   const [selectedDay, setSelectedDay] = useState(
     activeDayNumber !== null && activeDayNumber !== undefined ? String(activeDayNumber) : "all"
   );
@@ -630,11 +630,11 @@ export default function RouteMapCanvas({
             <div className="flex items-center rounded-lg border border-slate-200 bg-slate-50 p-0.5 text-xs">
               <button
                 type="button"
-                onClick={() => setActiveLayer("voyager")}
+                onClick={() => setActiveLayer("streets")}
                 className={`rounded-md px-2 py-1 font-medium transition ${
-                  activeLayer === "voyager" ? "bg-white text-slate-900 shadow-sm font-semibold" : "text-slate-500 hover:text-slate-900"
+                  activeLayer === "streets" ? "bg-white text-slate-900 shadow-sm font-semibold" : "text-slate-500 hover:text-slate-900"
                 }`}
-                title="CartoDB Voyager (Travel)"
+                title="Esri World Street Map"
               >
                 Streets
               </button>
