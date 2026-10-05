@@ -11,28 +11,21 @@ import {
   X,
 } from "lucide-react";
 
-// Google Maps & OpenStreetMap tile servers
+// High-performance, open CORS Map Tile Providers
 const MAP_LAYERS = {
-  googleRoads: {
-    name: "Google Roadmap",
-    url: "https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}",
-    attribution: "&copy; Google Maps",
+  voyager: {
+    name: "Streets (Voyager)",
+    url: "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
+    attribution: "&copy; OpenStreetMap contributors &copy; CARTO",
     maxZoom: 20,
-    subdomains: ["mt0", "mt1", "mt2", "mt3"],
+    subdomains: ["a", "b", "c", "d"],
   },
-  googleSatellite: {
-    name: "Google Satellite",
-    url: "https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}",
-    attribution: "&copy; Google Maps Satellite",
-    maxZoom: 20,
-    subdomains: ["mt0", "mt1", "mt2", "mt3"],
-  },
-  googleTerrain: {
-    name: "Google Terrain",
-    url: "https://{s}.google.com/vt/lyrs=p&x={x}&y={y}&z={z}",
-    attribution: "&copy; Google Maps Terrain",
-    maxZoom: 20,
-    subdomains: ["mt0", "mt1", "mt2", "mt3"],
+  satellite: {
+    name: "Satellite (Esri)",
+    url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+    attribution: "Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community",
+    maxZoom: 19,
+    subdomains: [],
   },
   osm: {
     name: "OpenStreetMap",
@@ -40,6 +33,13 @@ const MAP_LAYERS = {
     attribution: "&copy; OpenStreetMap contributors",
     maxZoom: 19,
     subdomains: ["a", "b", "c"],
+  },
+  terrain: {
+    name: "Terrain (Topo)",
+    url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}",
+    attribution: "Tiles &copy; Esri &mdash; Esri, USGS, FAO, NPS, NRCAN, GeoBase, Kadaster NL, Ordnance Survey",
+    maxZoom: 19,
+    subdomains: [],
   },
 };
 
@@ -74,7 +74,7 @@ export default function RouteMapCanvas({
   const watchIdRef = useRef(null);
 
   const [viewMode, setViewMode] = useState("interactive"); // "interactive" | "embed"
-  const [activeLayer, setActiveLayer] = useState("googleRoads");
+  const [activeLayer, setActiveLayer] = useState("voyager");
   const [selectedDay, setSelectedDay] = useState(
     activeDayNumber !== null && activeDayNumber !== undefined ? String(activeDayNumber) : "all"
   );
@@ -630,21 +630,21 @@ export default function RouteMapCanvas({
             <div className="flex items-center rounded-lg border border-slate-200 bg-slate-50 p-0.5 text-xs">
               <button
                 type="button"
-                onClick={() => setActiveLayer("googleRoads")}
+                onClick={() => setActiveLayer("voyager")}
                 className={`rounded-md px-2 py-1 font-medium transition ${
-                  activeLayer === "googleRoads" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500"
+                  activeLayer === "voyager" ? "bg-white text-slate-900 shadow-sm font-semibold" : "text-slate-500 hover:text-slate-900"
                 }`}
-                title="Google Roads"
+                title="CartoDB Voyager (Travel)"
               >
-                Roads
+                Streets
               </button>
               <button
                 type="button"
-                onClick={() => setActiveLayer("googleSatellite")}
+                onClick={() => setActiveLayer("satellite")}
                 className={`rounded-md px-2 py-1 font-medium transition ${
-                  activeLayer === "googleSatellite" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500"
+                  activeLayer === "satellite" ? "bg-white text-slate-900 shadow-sm font-semibold" : "text-slate-500 hover:text-slate-900"
                 }`}
-                title="Google Satellite"
+                title="Esri Satellite"
               >
                 Satellite
               </button>
@@ -652,11 +652,21 @@ export default function RouteMapCanvas({
                 type="button"
                 onClick={() => setActiveLayer("osm")}
                 className={`rounded-md px-2 py-1 font-medium transition ${
-                  activeLayer === "osm" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500"
+                  activeLayer === "osm" ? "bg-white text-slate-900 shadow-sm font-semibold" : "text-slate-500 hover:text-slate-900"
                 }`}
                 title="OpenStreetMap"
               >
                 OSM
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveLayer("terrain")}
+                className={`rounded-md px-2 py-1 font-medium transition ${
+                  activeLayer === "terrain" ? "bg-white text-slate-900 shadow-sm font-semibold" : "text-slate-500 hover:text-slate-900"
+                }`}
+                title="Terrain & Topography"
+              >
+                Terrain
               </button>
             </div>
           )}
