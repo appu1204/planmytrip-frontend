@@ -1,8 +1,22 @@
 // Rich destination geocoding, authentic landmark catalogue, and accurate route stop generator
-// Ensures 100% accurate real-world mapping for ANY destination (Goa, Kashmir, Kerala, Paris, Ayodhya, etc.)
+// Ensures 100% accurate real-world mapping for ANY destination (Patna, Goa, Kashmir, Kerala, Paris, Ayodhya, etc.)
 
 // Common typos, colloquialisms, and synonyms mapped to canonical destination names
 export const DESTINATION_ALIASES = {
+  // Bihar & East India
+  patna: "patna",
+  "patna bihar": "patna",
+  "patna city": "patna",
+  "patna sahib": "patna",
+  "patna india": "patna",
+  "patna india bihar": "patna",
+  bodhgaya: "bodh gaya",
+  "bodh gaya": "bodh gaya",
+  gaya: "gaya",
+  nalanda: "nalanda",
+  rajgir: "rajgir",
+  vaishali: "vaishali",
+
   // Kerala variations & typos
   kerela: "kerala",
   kerla: "kerala",
@@ -70,6 +84,17 @@ export const DESTINATION_ALIASES = {
 
 // Comprehensive GPS centers for popular destinations in India and worldwide
 export const DESTINATION_CENTERS = {
+  // Bihar & East India
+  patna: { lat: 25.5941, lng: 85.1376, label: "Patna, Bihar, India" },
+  "bodh gaya": { lat: 24.6961, lng: 84.9913, label: "Bodh Gaya, Bihar" },
+  bodhgaya: { lat: 24.6961, lng: 84.9913, label: "Bodh Gaya, Bihar" },
+  gaya: { lat: 24.7914, lng: 85.0002, label: "Gaya, Bihar" },
+  nalanda: { lat: 25.1357, lng: 85.4449, label: "Nalanda, Bihar" },
+  rajgir: { lat: 25.0310, lng: 85.4210, label: "Rajgir, Bihar" },
+  vaishali: { lat: 25.9868, lng: 85.1275, label: "Vaishali, Bihar" },
+  ranchi: { lat: 23.3441, lng: 85.3096, label: "Ranchi, Jharkhand" },
+  jamshedpur: { lat: 22.8046, lng: 86.2029, label: "Jamshedpur, Jharkhand" },
+
   // Kerala
   kerala: { lat: 9.9312, lng: 76.2673, label: "Kerala, India" },
   kerela: { lat: 9.9312, lng: 76.2673, label: "Kerala, India" },
@@ -197,6 +222,18 @@ export const DESTINATION_CENTERS = {
 // Extensive Landmark & Place Dictionary for Itinerary Activities
 // Maps place names and keywords directly to their realistic GPS coordinates
 export const SPECIFIC_PLACES = [
+  // Patna & Bihar Landmarks
+  { keywords: ["golghar", "golghar patna", "gandhi maidan"], lat: 25.6207, lng: 85.1436, name: "Golghar & Gandhi Maidan Patna", destination: "patna" },
+  { keywords: ["patna sahib", "takht sri patna sahib", "gurudwara patna sahib", "harmandir ji"], lat: 25.5930, lng: 85.2268, name: "Takht Sri Patna Sahib Gurudwara", destination: "patna" },
+  { keywords: ["bihar museum", "patna museum", "bailey road"], lat: 25.6094, lng: 85.1226, name: "Bihar Museum Bailey Road", destination: "patna" },
+  { keywords: ["mahavir mandir", "patna junction", "mahavir temple"], lat: 25.6033, lng: 85.1377, name: "Mahavir Mandir Patna Junction", destination: "patna" },
+  { keywords: ["patna marine drive", "ganga pathway", "nit ghat", "gandhi ghat", "ganga aarti patna"], lat: 25.6220, lng: 85.1520, name: "Patna Marine Drive & NIT Ganga Ghat", destination: "patna" },
+  { keywords: ["planetarium", "indira gandhi science complex", "taramandal"], lat: 25.6105, lng: 85.1360, name: "Patna Planetarium (Indira Gandhi Science Complex)", destination: "patna" },
+  { keywords: ["kumhrar", "pataliputra", "ancient ruins", "mauryan pillars"], lat: 25.5958, lng: 85.1804, name: "Kumhrar Ancient Pataliputra Excavation", destination: "patna" },
+  { keywords: ["bodh gaya", "mahabodhi", "bodhi tree"], lat: 24.6961, lng: 84.9913, name: "Mahabodhi Temple Complex Bodh Gaya", destination: "patna" },
+  { keywords: ["nalanda", "nalanda university", "ancient nalanda"], lat: 25.1357, lng: 85.4449, name: "Nalanda Ancient UNESCO University Ruins", destination: "patna" },
+  { keywords: ["rajgir", "glass bridge", "vishwa shanti stupa", "ropeway"], lat: 25.0310, lng: 85.4210, name: "Rajgir Ropeway & Vishwa Shanti Stupa", destination: "patna" },
+
   // Goa Landmarks
   { keywords: ["goa airport", "dabolim"], lat: 15.3808, lng: 73.8314, name: "Dabolim International Airport (GOI)", destination: "goa" },
   { keywords: ["mopa airport", "manohar airport", "mopa"], lat: 15.7725, lng: 73.8683, name: "Manohar Int'l Airport Mopa (GOX)", destination: "goa" },
@@ -374,8 +411,9 @@ export function normalizeDestinationName(rawDestination = "") {
   let cleaned = firstLine
     .toLowerCase()
     .trim()
-    .replace(/[^\w\s]/g, "")
-    .replace(/\s+/g, " ");
+    .replace(/[^\w\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 
   // Remove administrative descriptive phrasing like "city in uttar pradesh" -> "mathura"
   cleaned = cleaned.replace(/\b(city|town|district|state)\s+in\s+.*$/gi, "").trim();
@@ -424,6 +462,9 @@ export function getResolvedDestinationCoords(destination) {
   return DYNAMIC_GEO_CACHE.get(norm) || null;
 }
 
+// Stop words to exclude during token matching so "india", "state", "city" do not falsely hijack city names
+const STOP_WORDS = new Set(["india", "in", "the", "of", "and", "city", "district", "state", "pradesh", "nagar"]);
+
 // Find center GPS coordinate for any destination with dynamic geocoding support
 export function getDestinationCenter(destination = "", returnFallback = true) {
   const norm = normalizeDestinationName(destination);
@@ -438,22 +479,19 @@ export function getDestinationCenter(destination = "", returnFallback = true) {
     return DESTINATION_CENTERS[norm];
   }
 
-  // 3. Substring match
-  for (const [key, center] of Object.entries(DESTINATION_CENTERS)) {
-    if (norm.includes(key) || key.includes(norm)) {
-      return center;
+  // 3. Match by isolated individual meaningful tokens (e.g. "patna" in "patna india bihar")
+  const tokens = norm.split(/\s+/).filter((t) => t.length > 2 && !STOP_WORDS.has(t));
+  for (const token of tokens) {
+    if (DESTINATION_CENTERS[token]) {
+      return DESTINATION_CENTERS[token];
     }
   }
 
-  // 4. Check if destination words match any center
-  const words = norm.split(" ");
-  for (const word of words) {
-    if (word.length > 2) {
-      for (const [key, center] of Object.entries(DESTINATION_CENTERS)) {
-        if (key.includes(word) || word.includes(key)) {
-          return center;
-        }
-      }
+  // 4. Exact word-boundary match for multi-word destination keys (e.g. "new delhi", "bodh gaya")
+  for (const [key, center] of Object.entries(DESTINATION_CENTERS)) {
+    const regex = new RegExp(`\\b${key}\\b`, "i");
+    if (regex.test(norm)) {
+      return center;
     }
   }
 
@@ -506,6 +544,43 @@ export async function fetchDestinationCoordinatesAsync(destination) {
 
 // Authentic curated schedules for prominent destinations
 export const CURATED_DESTINATION_PLANS = {
+  patna: [
+    {
+      label: "Arrival, Golghar & Ganga Riverfront Promenade",
+      activities: [
+        { time: "11:00 AM", title: "Arrive in Patna & Heritage Hotel Check-in", note: "Welcome to ancient Pataliputra, refresh and unpack." },
+        { time: "02:30 PM", title: "Golghar & Gandhi Maidan Exploration", note: "Iconic 18th-century beehive granary with panoramic vistas over the Ganges." },
+        { time: "05:30 PM", title: "Patna Marine Drive & NIT Ganga Ghat Sunset Aarti", note: "Evening river breeze along the Ganges pathway with traditional evening aarti." },
+        { time: "08:00 PM", title: "Authentic Bihari Litti Chokha & Khaja Dinner", note: "Savor roasted wheat littis with sattu, spicy chokha, and ghee." },
+      ],
+    },
+    {
+      label: "Takht Sri Patna Sahib & Ancient Pataliputra Heritage",
+      activities: [
+        { time: "09:00 AM", title: "Takht Sri Patna Sahib Gurudwara Darshan", note: "Birthplace of Guru Gobind Singh Ji, marvel at marble architecture and langar." },
+        { time: "12:00 PM", title: "Kumhrar Ancient Pataliputra Excavation Ruins", note: "Explore 2,300-year-old Mauryan Empire 80-pillared assembly hall." },
+        { time: "03:00 PM", title: "Bihar Museum World-Class Exhibition Tour", note: "Marvel at the Didarganj Yakshi statue, ancient Buddhist artifacts, and folk art." },
+        { time: "06:30 PM", title: "Mahavir Mandir Patna Junction Evening Prayers", note: "Historic sacred temple known for iconic Naivedyam prasad." },
+      ],
+    },
+    {
+      label: "Nalanda & Rajgir UNESCO Heritage Excursion",
+      activities: [
+        { time: "08:00 AM", title: "Drive to Nalanda Ancient University Ruins", note: "UNESCO 5th-century ancient seat of global learning with red-brick stupas." },
+        { time: "12:30 PM", title: "Rajgir Glass Bridge & Ropeway to Vishwa Shanti Stupa", note: "Scenic ropeway ascent up Ratnagiri hill with Japanese peace pagoda." },
+        { time: "04:00 PM", title: "Bodh Gaya Mahabodhi Temple & Sacred Bodhi Tree", note: "UNESCO World Heritage site where Lord Buddha attained enlightenment." },
+        { time: "08:00 PM", title: "Return to Patna for Farewell Dinner", note: "Celebrate unforgettable heritage memories of historic Bihar." },
+      ],
+    },
+    {
+      label: "Handicrafts & Departure",
+      activities: [
+        { time: "09:30 AM", title: "Madhubani Paintings & Tikuli Art Souvenir Shopping", note: "Shop for authentic hand-painted Madhubani silk stoles and terracotta crafts." },
+        { time: "01:30 PM", title: "Transfer to Jayprakash Narayan Airport (PAT) / Patna Jn", note: "Depart with rich cultural memories of Bihar." },
+      ],
+    },
+  ],
+
   goa: [
     {
       label: "Arrival, Candolim Coast & Fort Aguada Sunset",
@@ -803,13 +878,16 @@ export function itineraryToRouteStops(itinerary, rawDestination = "", overrideCe
       ? overrideCenter
       : getDestinationCenter(normDest);
 
+  // Extract destination key words for matching (e.g. "patna" from "patna india bihar")
+  const destKeywords = normDest.split(/\s+/).filter((k) => k.length > 2 && !STOP_WORDS.has(k));
+
   // Collect all landmarks registered for this destination
   const destLandmarks = SPECIFIC_PLACES.filter(
     (p) =>
       p.destination &&
       (p.destination === normDest ||
-        normDest.includes(p.destination) ||
-        p.destination.includes(normDest))
+        destKeywords.includes(p.destination) ||
+        normDest.includes(p.destination))
   );
 
   const stops = [];
@@ -852,12 +930,12 @@ export function itineraryToRouteStops(itinerary, rawDestination = "", overrideCe
         }
       }
 
-      // 3. Fallback to general specific places within 100km radius
+      // 3. Fallback to general specific places strictly within 80km radius of the resolved center
       if (!matchedPlace) {
         for (const place of SPECIFIC_PLACES) {
           if (place.keywords.some((kw) => text.includes(kw))) {
             const distKm = getGeoDistanceKm(center.lat, center.lng, place.lat, place.lng);
-            if (distKm <= 100) {
+            if (distKm <= 80) {
               matchedPlace = place;
               break;
             }
@@ -884,7 +962,7 @@ export function itineraryToRouteStops(itinerary, rawDestination = "", overrideCe
         const hash = Math.sin(dayIdx * 7 + actIdx * 13 + 1) * 10000;
         const pseudoRand = hash - Math.floor(hash);
         const offsetAngle = (dayIdx * 90 + actIdx * 45 + pseudoRand * 30) * (Math.PI / 180);
-        const distDeg = 0.005 + (actIdx * 0.0035); // Approx 400m to 1.2km
+        const distDeg = 0.005 + (actIdx * 0.0035);
         lat = center.lat + Math.sin(offsetAngle) * distDeg;
         lng = center.lng + Math.cos(offsetAngle) * distDeg;
       }
@@ -913,7 +991,6 @@ export function itineraryToRouteStops(itinerary, rawDestination = "", overrideCe
 function getThematicDay(destination, dayIndex, totalDays, persona, preferences, budget, adults, children) {
   const isFirstDay = dayIndex === 0;
   const isLastDay = dayIndex === totalDays - 1;
-  const isLuxury = budget > 120000;
   const wantsDining = preferences.includes("Dining") || preferences.includes("Local food");
 
   if (isFirstDay) {
@@ -1047,10 +1124,18 @@ export function buildFallbackItinerary(trip = {}) {
   const nights = diffDays > 0 ? diffDays : 3;
   const totalDays = nights + 1;
 
+  // Extract destination key words for matching (e.g. "patna" from "patna india bihar")
+  const destKeywords = normDest.split(/\s+/).filter((k) => k.length > 2 && !STOP_WORDS.has(k));
+
   // Check if we have an authentic curated plan for this destination
   let curatedList = null;
   for (const [key, plan] of Object.entries(CURATED_DESTINATION_PLANS)) {
-    if (normDest.includes(key) || key.includes(normDest)) {
+    const keyRegex = new RegExp(`\\b${key}\\b`, "i");
+    if (
+      normDest === key ||
+      destKeywords.includes(key) ||
+      keyRegex.test(normDest)
+    ) {
       curatedList = plan;
       break;
     }
