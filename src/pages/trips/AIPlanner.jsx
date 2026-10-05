@@ -37,6 +37,7 @@ import {
   buildFallbackItinerary,
   itineraryToRouteStops,
   getDestinationCenter,
+  fetchDestinationCoordinatesAsync,
 } from "../../utils/itineraryFallback";
 
 function getDefaultDates() {
@@ -180,16 +181,32 @@ export default function AIPlanner() {
     return plan.days.reduce((acc, d) => acc + (d.activities?.length || 0), 0);
   }, [plan]);
 
-  // Route stops for the interactive Leaflet Map
-  const routeStops = useMemo(() => {
-    if (!plan) return [];
-    return itineraryToRouteStops(plan, form.destination);
-  }, [plan, form.destination]);
+  const [resolvedCoords, setResolvedCoords] = useState(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    if (form.destination) {
+      fetchDestinationCoordinatesAsync(form.destination).then((coords) => {
+        if (isMounted && coords) {
+          setResolvedCoords(coords);
+        }
+      });
+    }
+    return () => {
+      isMounted = false;
+    };
+  }, [form.destination]);
 
   // Geographical center coordinate for the destination
   const destinationCenter = useMemo(() => {
-    return getDestinationCenter(form.destination || "new delhi");
-  }, [form.destination]);
+    return resolvedCoords || getDestinationCenter(form.destination || "new delhi");
+  }, [form.destination, resolvedCoords]);
+
+  // Route stops for the interactive Leaflet Map
+  const routeStops = useMemo(() => {
+    if (!plan) return [];
+    return itineraryToRouteStops(plan, form.destination, destinationCenter);
+  }, [plan, form.destination, destinationCenter]);
 
   const dayTag = (index, total) => {
     if (index === 1) return "Arrival & Orientation";

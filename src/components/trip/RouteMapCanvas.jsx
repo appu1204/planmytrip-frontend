@@ -13,26 +13,26 @@ import {
 
 // High-performance, open CORS Map Tile Providers (100% Free, No Watermark, No API Key Required)
 const MAP_LAYERS = {
-  streets: {
-    name: "Streets (Esri)",
-    url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}",
-    attribution: "Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong)",
-    maxZoom: 19,
-    subdomains: [],
-  },
-  satellite: {
-    name: "Satellite (Esri)",
-    url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-    attribution: "Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community",
-    maxZoom: 19,
-    subdomains: [],
-  },
   osm: {
-    name: "OpenStreetMap",
+    name: "Street Map (OSM)",
     url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
     attribution: "&copy; <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors",
     maxZoom: 19,
     subdomains: ["a", "b", "c"],
+  },
+  satellite: {
+    name: "Satellite (Esri)",
+    url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+    attribution: "Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP",
+    maxZoom: 19,
+    subdomains: [],
+  },
+  streets: {
+    name: "Detailed Roads (Esri)",
+    url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}",
+    attribution: "Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI",
+    maxZoom: 19,
+    subdomains: [],
   },
   terrain: {
     name: "Terrain (Topo)",
@@ -74,7 +74,7 @@ export default function RouteMapCanvas({
   const watchIdRef = useRef(null);
 
   const [viewMode, setViewMode] = useState("interactive"); // "interactive" | "embed"
-  const [activeLayer, setActiveLayer] = useState("streets");
+  const [activeLayer, setActiveLayer] = useState("osm");
   const [selectedDay, setSelectedDay] = useState(
     activeDayNumber !== null && activeDayNumber !== undefined ? String(activeDayNumber) : "all"
   );
@@ -630,13 +630,13 @@ export default function RouteMapCanvas({
             <div className="flex items-center rounded-lg border border-slate-200 bg-slate-50 p-0.5 text-xs">
               <button
                 type="button"
-                onClick={() => setActiveLayer("streets")}
+                onClick={() => setActiveLayer("osm")}
                 className={`rounded-md px-2 py-1 font-medium transition ${
-                  activeLayer === "streets" ? "bg-white text-slate-900 shadow-sm font-semibold" : "text-slate-500 hover:text-slate-900"
+                  activeLayer === "osm" ? "bg-white text-slate-900 shadow-sm font-semibold" : "text-slate-500 hover:text-slate-900"
                 }`}
-                title="Esri World Street Map"
+                title="OpenStreetMap Standard (Crisp & High-Contrast)"
               >
-                Streets
+                Street Map
               </button>
               <button
                 type="button"
@@ -644,19 +644,19 @@ export default function RouteMapCanvas({
                 className={`rounded-md px-2 py-1 font-medium transition ${
                   activeLayer === "satellite" ? "bg-white text-slate-900 shadow-sm font-semibold" : "text-slate-500 hover:text-slate-900"
                 }`}
-                title="Esri Satellite"
+                title="Satellite Imagery (Esri)"
               >
                 Satellite
               </button>
               <button
                 type="button"
-                onClick={() => setActiveLayer("osm")}
+                onClick={() => setActiveLayer("streets")}
                 className={`rounded-md px-2 py-1 font-medium transition ${
-                  activeLayer === "osm" ? "bg-white text-slate-900 shadow-sm font-semibold" : "text-slate-500 hover:text-slate-900"
+                  activeLayer === "streets" ? "bg-white text-slate-900 shadow-sm font-semibold" : "text-slate-500 hover:text-slate-900"
                 }`}
-                title="OpenStreetMap"
+                title="Detailed Roads (Esri)"
               >
-                OSM
+                Roads
               </button>
               <button
                 type="button"
